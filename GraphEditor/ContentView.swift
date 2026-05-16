@@ -1,19 +1,125 @@
 import SwiftUI
+import AppKit
 
-struct DrawnCircle: Identifiable {
+enum OperationAxis: CaseIterable {
+    case shapeSelection
+    case x
+    case y
+    case width
+    case height
+
+    var title: String {
+        switch self {
+        case .shapeSelection:
+            return "図形選択"
+        case .x:
+            return "X軸座標"
+        case .y:
+            return "Y軸座標"
+        case .width:
+            return "Width"
+        case .height:
+            return "Height"
+        }
+    }
+
+    var editableProperty: ShapeEditableProperty? {
+        switch self {
+        case .shapeSelection:
+            nil
+        case .x:
+            .x
+        case .y:
+            .y
+        case .width:
+            .width
+        case .height:
+            .height
+        }
+    }
+}
+
+enum ShapeEditableProperty {
+    case x
+    case y
+    case width
+    case height
+}
+
+protocol EditableShape {
+    func value(for property: ShapeEditableProperty) -> CGFloat
+    mutating func move(property: ShapeEditableProperty, by delta: CGFloat)
+}
+
+struct DrawnCircle: Identifiable, EditableShape {
     let id = UUID()
-    let rect: CGRect
+    var rect: CGRect
     let color: Color
     let lineWidth: CGFloat
+
+    func value(for property: ShapeEditableProperty) -> CGFloat {
+        switch property {
+        case .x:
+            rect.origin.x
+        case .y:
+            rect.origin.y
+        case .width:
+            rect.width
+        case .height:
+            rect.height
+        }
+    }
+
+    mutating func move(property: ShapeEditableProperty, by delta: CGFloat) {
+        switch property {
+        case .x:
+            rect.origin.x += delta
+        case .y:
+            rect.origin.y += delta
+        case .width, .height:
+            let diameter = max(4, rect.width + delta)
+            rect.size = CGSize(width: diameter, height: diameter)
+        }
+    }
 }
 
 struct ContentView: View {
     @State private var circles: [DrawnCircle] = []
+    @State private var selectedCircleID: DrawnCircle.ID?
+    @State private var operationAxis = OperationAxis.shapeSelection
     @State private var dragStart: CGPoint?
     @State private var dragCurrent: CGPoint?
     @State private var strokeColor = Color.accentColor
     @State private var lineWidth = 3.0
     @State private var fillCircles = false
+
+    private var selectedCircleIndex: Int? {
+        guard let selectedCircleID else {
+            return nil
+        }
+
+        return circles.firstIndex { $0.id == selectedCircleID }
+    }
+
+    private var operationValueText: String {
+        switch operationAxis {
+        case .shapeSelection:
+            if let selectedCircleIndex {
+                return "\(selectedCircleIndex + 1) / \(circles.count)"
+            } else {
+                return "なし"
+            }
+        case .x, .y, .width, .height:
+            guard
+                let selectedCircleIndex,
+                let property = operationAxis.editableProperty
+            else {
+                return "なし"
+            }
+
+            return "\(Int(circles[selectedCircleIndex].value(for: property)))"
+        }
+    }
 
     private var previewCircle: DrawnCircle? {
         guard let dragStart, let dragCurrent else {
@@ -62,6 +168,7 @@ struct ContentView: View {
 
             Button {
                 circles.removeAll()
+                selectedCircleID = nil
                 dragStart = nil
                 dragCurrent = nil
             } label: {
@@ -83,21 +190,32 @@ struct ContentView: View {
                 drawGrid(in: &context, size: size)
 
                 for circle in circles {
-                    draw(circle, in: &context, fill: fillCircles, opacity: 1)
+                    draw(
+                        circle,
+                        in: &context,
+                        fill: fillCircles,
+                        opacity: 1,
+                        isSelected: circle.id == selectedCircleID
+                    )
                 }
 
                 if let previewCircle {
-                    draw(previewCircle, in: &context, fill: fillCircles, opacity: 0.65)
+                    draw(previewCircle, in: &context, fill: fillCircles, opacity: 0.65, isSelected: false)
                 }
             }
+            .background(KeyEventHandlingView(onKeyDown: handleKeyDown))
             .overlay(alignment: .bottomLeading) {
-                Text("\(circles.count) circles")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 6))
-                    .padding(10)
+                HStack(spacing: 14) {
+                    Text("\(circles.count) circles")
+                    Text("軸: \(operationAxis.title)")
+                    Text("値: \(operationValueText)")
+                }
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 6))
+                .padding(10)
             }
             .contentShape(Rectangle())
             .gesture(
@@ -114,13 +232,13 @@ struct ContentView: View {
                         let rect = Self.circleRect(from: start, to: end)
 
                         if rect.width >= 4, rect.height >= 4 {
-                            circles.append(
-                                DrawnCircle(
-                                    rect: rect,
-                                    color: strokeColor,
-                                    lineWidth: lineWidth
-                                )
+                            let circle = DrawnCircle(
+                                rect: rect,
+                                color: strokeColor,
+                                lineWidth: lineWidth
                             )
+                            circles.append(circle)
+                            selectedCircleID = circle.id
                         }
 
                         dragStart = nil
@@ -130,7 +248,13 @@ struct ContentView: View {
         }
     }
 
-    private func draw(_ circle: DrawnCircle, in context: inout GraphicsContext, fill: Bool, opacity: Double) {
+    private func draw(
+        _ circle: DrawnCircle,
+        in context: inout GraphicsContext,
+        fill: Bool,
+        opacity: Double,
+        isSelected: Bool
+    ) {
         let path = Path(ellipseIn: circle.rect)
         let color = circle.color.opacity(opacity)
 
@@ -138,6 +262,88 @@ struct ContentView: View {
             context.fill(path, with: .color(color.opacity(0.18)))
         }
         context.stroke(path, with: .color(color), lineWidth: circle.lineWidth)
+
+        if isSelected {
+            let selectionRect = circle.rect.insetBy(dx: -5, dy: -5)
+            context.stroke(
+                Path(selectionRect),
+                with: .color(Color.primary.opacity(0.45)),
+                style: StrokeStyle(lineWidth: 1, dash: [5, 4])
+            )
+        }
+    }
+
+    private func handleKeyDown(_ event: NSEvent) -> Bool {
+        switch event.keyCode {
+        case 123:
+            selectPreviousAxis()
+        case 124:
+            selectNextAxis()
+        case 125:
+            applyLinearOperation(delta: -1)
+        case 126:
+            applyLinearOperation(delta: 1)
+        default:
+            return false
+        }
+
+        return true
+    }
+
+    private func selectPreviousAxis() {
+        guard let currentIndex = OperationAxis.allCases.firstIndex(of: operationAxis) else {
+            operationAxis = .shapeSelection
+            return
+        }
+
+        let previousIndex = (currentIndex - 1 + OperationAxis.allCases.count) % OperationAxis.allCases.count
+        operationAxis = OperationAxis.allCases[previousIndex]
+    }
+
+    private func selectNextAxis() {
+        guard let currentIndex = OperationAxis.allCases.firstIndex(of: operationAxis) else {
+            operationAxis = .shapeSelection
+            return
+        }
+
+        let nextIndex = (currentIndex + 1) % OperationAxis.allCases.count
+        operationAxis = OperationAxis.allCases[nextIndex]
+    }
+
+    private func applyLinearOperation(delta: CGFloat) {
+        guard !circles.isEmpty else {
+            selectedCircleID = nil
+            return
+        }
+
+        if selectedCircleID == nil || selectedCircleIndex == nil {
+            selectedCircleID = circles[0].id
+        }
+
+        if operationAxis == .shapeSelection {
+            moveSelection(by: Int(delta))
+            return
+        }
+
+        guard
+            let selectedCircleIndex,
+            let property = operationAxis.editableProperty
+        else {
+            return
+        }
+
+        circles[selectedCircleIndex].move(property: property, by: delta)
+    }
+
+    private func moveSelection(by delta: Int) {
+        guard !circles.isEmpty else {
+            selectedCircleID = nil
+            return
+        }
+
+        let currentIndex = selectedCircleIndex ?? 0
+        let nextIndex = (currentIndex + delta + circles.count) % circles.count
+        selectedCircleID = circles[nextIndex].id
     }
 
     private func drawGrid(in context: inout GraphicsContext, size: CGSize) {
@@ -170,5 +376,49 @@ struct ContentView: View {
             x: min(max(point.x, 0), size.width),
             y: min(max(point.y, 0), size.height)
         )
+    }
+}
+
+private struct KeyEventHandlingView: NSViewRepresentable {
+    let onKeyDown: (NSEvent) -> Bool
+
+    func makeNSView(context: Context) -> KeyEventNSView {
+        let view = KeyEventNSView()
+        view.onKeyDown = onKeyDown
+
+        DispatchQueue.main.async {
+            view.window?.makeFirstResponder(view)
+        }
+
+        return view
+    }
+
+    func updateNSView(_ nsView: KeyEventNSView, context: Context) {
+        nsView.onKeyDown = onKeyDown
+
+        DispatchQueue.main.async {
+            nsView.window?.makeFirstResponder(nsView)
+        }
+    }
+}
+
+private final class KeyEventNSView: NSView {
+    var onKeyDown: ((NSEvent) -> Bool)?
+
+    override var acceptsFirstResponder: Bool {
+        true
+    }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        window?.makeFirstResponder(self)
+    }
+
+    override func keyDown(with event: NSEvent) {
+        if onKeyDown?(event) == true {
+            return
+        }
+
+        super.keyDown(with: event)
     }
 }
