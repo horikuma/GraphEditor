@@ -18,9 +18,9 @@ struct DrawnCircle: Identifiable, EditableShape {
 
     func value(for property: ShapeEditableProperty) -> CGFloat {
         switch property {
-        case .x:
+        case .xCoordinate:
             return center.x
-        case .y:
+        case .yCoordinate:
             return center.y
         case .width:
             return diameter
@@ -31,9 +31,9 @@ struct DrawnCircle: Identifiable, EditableShape {
 
     mutating func move(property: ShapeEditableProperty, by delta: CGFloat) {
         switch property {
-        case .x:
+        case .xCoordinate:
             center.x += delta
-        case .y:
+        case .yCoordinate:
             center.y -= delta
         case .width, .height:
             diameter = max(4, diameter + delta)
@@ -62,7 +62,7 @@ struct GraphEditorContent {
             } else {
                 return "なし"
             }
-        case .x, .y, .width, .height:
+        case .xCoordinate, .yCoordinate, .width, .height:
             guard
                 let selectedCircleIndex,
                 let property = operationAxis.editableProperty

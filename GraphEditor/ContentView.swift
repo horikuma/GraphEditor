@@ -171,14 +171,14 @@ struct ContentView: View {
         var path = Path()
         let step: CGFloat = 24
 
-        stride(from: CGFloat.zero, through: size.width, by: step).forEach { x in
-            path.move(to: CGPoint(x: x, y: 0))
-            path.addLine(to: CGPoint(x: x, y: size.height))
+        stride(from: CGFloat.zero, through: size.width, by: step).forEach { gridX in
+            path.move(to: CGPoint(x: gridX, y: 0))
+            path.addLine(to: CGPoint(x: gridX, y: size.height))
         }
 
-        stride(from: CGFloat.zero, through: size.height, by: step).forEach { y in
-            path.move(to: CGPoint(x: 0, y: y))
-            path.addLine(to: CGPoint(x: size.width, y: y))
+        stride(from: CGFloat.zero, through: size.height, by: step).forEach { gridY in
+            path.move(to: CGPoint(x: 0, y: gridY))
+            path.addLine(to: CGPoint(x: size.width, y: gridY))
         }
 
         context.stroke(path, with: .color(Color.secondary.opacity(0.12)), lineWidth: 0.5)
@@ -197,10 +197,10 @@ struct ContentView: View {
 
     private static func circleRect(from start: CGPoint, to end: CGPoint) -> CGRect {
         let diameter = min(abs(end.x - start.x), abs(end.y - start.y))
-        let x = end.x >= start.x ? start.x : start.x - diameter
-        let y = end.y >= start.y ? start.y : start.y - diameter
+        let originX = end.x >= start.x ? start.x : start.x - diameter
+        let originY = end.y >= start.y ? start.y : start.y - diameter
 
-        return CGRect(x: x, y: y, width: diameter, height: diameter)
+        return CGRect(x: originX, y: originY, width: diameter, height: diameter)
     }
 
     private static func clamp(_ point: CGPoint, in size: CGSize) -> CGPoint {

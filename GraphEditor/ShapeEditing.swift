@@ -2,8 +2,8 @@ import CoreGraphics
 
 enum OperationAxis: CaseIterable {
     case shapeSelection
-    case x
-    case y
+    case xCoordinate
+    case yCoordinate
     case width
     case height
 
@@ -11,9 +11,9 @@ enum OperationAxis: CaseIterable {
         switch self {
         case .shapeSelection:
             return "図形選択"
-        case .x:
+        case .xCoordinate:
             return "X軸座標"
-        case .y:
+        case .yCoordinate:
             return "Y軸座標"
         case .width:
             return "Width"
@@ -26,10 +26,10 @@ enum OperationAxis: CaseIterable {
         switch self {
         case .shapeSelection:
             return nil
-        case .x:
-            return .x
-        case .y:
-            return .y
+        case .xCoordinate:
+            return .xCoordinate
+        case .yCoordinate:
+            return .yCoordinate
         case .width:
             return .width
         case .height:
@@ -39,8 +39,8 @@ enum OperationAxis: CaseIterable {
 }
 
 enum ShapeEditableProperty {
-    case x
-    case y
+    case xCoordinate
+    case yCoordinate
     case width
     case height
 }
