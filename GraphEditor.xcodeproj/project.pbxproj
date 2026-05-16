@@ -9,12 +9,16 @@
 /* Begin PBXBuildFile section */
 		00A0000A0000000000000001 /* GraphEditorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000001 /* GraphEditorApp.swift */; };
 		00A0000A0000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000002 /* ContentView.swift */; };
+		00A0000A0000000000000003 /* GraphEditorContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000004 /* GraphEditorContent.swift */; };
+		00A0000A0000000000000004 /* ShapeEditing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000005 /* ShapeEditing.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		00A0000B0000000000000001 /* GraphEditorApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphEditorApp.swift; sourceTree = "<group>"; };
 		00A0000B0000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		00A0000B0000000000000003 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		00A0000B0000000000000004 /* GraphEditorContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphEditorContent.swift; sourceTree = "<group>"; };
+		00A0000B0000000000000005 /* ShapeEditing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeEditing.swift; sourceTree = "<group>"; };
 		00A0000C0000000000000001 /* GraphEditor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GraphEditor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -41,6 +45,8 @@
 			isa = PBXGroup;
 			children = (
 				00A0000B0000000000000001 /* GraphEditorApp.swift */,
+				00A0000B0000000000000004 /* GraphEditorContent.swift */,
+				00A0000B0000000000000005 /* ShapeEditing.swift */,
 				00A0000B0000000000000002 /* ContentView.swift */,
 				00A0000B0000000000000003 /* Info.plist */,
 			);
@@ -124,6 +130,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				00A0000A0000000000000001 /* GraphEditorApp.swift in Sources */,
+				00A0000A0000000000000003 /* GraphEditorContent.swift in Sources */,
+				00A0000A0000000000000004 /* ShapeEditing.swift in Sources */,
 				00A0000A0000000000000002 /* ContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
