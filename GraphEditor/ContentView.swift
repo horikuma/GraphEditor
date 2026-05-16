@@ -3,19 +3,9 @@ import AppKit
 
 struct ContentView: View {
     @State private var content = GraphEditorContent()
-    @State private var dragStart: CGPoint?
-    @State private var dragCurrent: CGPoint?
     @State private var strokeColor = Color.accentColor
     @State private var lineWidth = 3.0
     @State private var fillCircles = false
-
-    private var previewCircle: DrawnCircle? {
-        guard let dragStart, let dragCurrent else {
-            return nil
-        }
-
-        return Self.circle(from: dragStart, to: dragCurrent, color: strokeColor, lineWidth: lineWidth)
-    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -29,6 +19,15 @@ struct ContentView: View {
 
     private var toolbar: some View {
         HStack(spacing: 12) {
+            Picker("追加", selection: $content.addableShapeKind) {
+                ForEach(AddableShapeKind.allCases) { shapeKind in
+                    Text(shapeKind.title).tag(shapeKind)
+                }
+            }
+            .pickerStyle(.segmented)
+            .frame(width: 140)
+            .help("追加する図形")
+
             ColorPicker("Stroke", selection: $strokeColor)
                 .labelsHidden()
                 .help("線の色")
@@ -52,12 +51,10 @@ struct ContentView: View {
 
             Button {
                 content.clear()
-                dragStart = nil
-                dragCurrent = nil
             } label: {
                 Label("Clear", systemImage: "trash")
             }
-            .disabled(content.circles.isEmpty && previewCircle == nil)
+            .disabled(content.shapes.isEmpty)
             .help("すべて消去")
         }
         .padding(.horizontal, 14)
@@ -70,26 +67,32 @@ struct ContentView: View {
                 let background = Path(CGRect(origin: .zero, size: size))
                 context.fill(background, with: .color(Color(nsColor: .textBackgroundColor)))
 
-                drawGrid(in: &context, size: size)
-
-                for circle in content.circles {
-                    draw(
-                        circle,
+                for shape in content.shapes where shape.isGrid {
+                    drawShape(
+                        shape,
                         in: &context,
+                        size: size,
                         fill: fillCircles,
-                        opacity: 1,
-                        isSelected: circle.id == content.selectedCircleID
+                        isSelected: shape.id == content.selectedShapeID
                     )
                 }
 
-                if let previewCircle {
-                    draw(previewCircle, in: &context, fill: fillCircles, opacity: 0.65, isSelected: false)
+                for shape in content.shapes where !shape.isGrid {
+                    drawShape(
+                        shape,
+                        in: &context,
+                        size: size,
+                        fill: fillCircles,
+                        isSelected: shape.id == content.selectedShapeID
+                    )
                 }
+
             }
             .background(KeyEventHandlingView(onKeyDown: handleKeyDown))
             .overlay(alignment: .bottomLeading) {
                 HStack(spacing: 14) {
-                    Text("\(content.circles.count) circles")
+                    Text("\(content.shapes.count) objects")
+                    Text("図形: \(content.selectedShapeLabel)")
                     Text("軸: \(content.operationAxis.title)")
                     Text("値: \(content.operationValueText)")
                 }
@@ -102,30 +105,72 @@ struct ContentView: View {
             }
             .contentShape(Rectangle())
             .gesture(
-                DragGesture(minimumDistance: 1, coordinateSpace: .local)
-                    .onChanged { value in
-                        if dragStart == nil {
-                            dragStart = value.startLocation
-                        }
-                        dragCurrent = Self.clamp(value.location, in: geometry.size)
-                    }
+                SpatialTapGesture(coordinateSpace: .local)
                     .onEnded { value in
-                        let start = dragStart ?? value.startLocation
-                        let end = Self.clamp(value.location, in: geometry.size)
-                        let circle = Self.circle(from: start, to: end, color: strokeColor, lineWidth: lineWidth)
-
-                        if circle.diameter >= 4 {
-                            content.appendCircle(circle)
-                        }
-
-                        dragStart = nil
-                        dragCurrent = nil
+                        let location = Self.clamp(value.location, in: geometry.size)
+                        appendShape(at: location)
                     }
             )
         }
     }
 
-    private func draw(
+    private func appendShape(at location: CGPoint) {
+        switch content.addableShapeKind {
+        case .circle:
+            content.appendCircle(
+                DrawnCircle(
+                    center: location,
+                    diameter: 48,
+                    color: strokeColor,
+                    lineWidth: lineWidth
+                )
+            )
+        case .grid:
+            content.appendGrid(DrawnGrid(origin: location, spacing: 24))
+        }
+    }
+
+    private func handleKeyDown(_ event: NSEvent) -> Bool {
+        switch event.keyCode {
+        case 123:
+            content.selectPreviousAxis()
+        case 124:
+            content.selectNextAxis()
+        case 125:
+            content.applyLinearOperation(delta: -keyStep(for: event))
+        case 126:
+            content.applyLinearOperation(delta: keyStep(for: event))
+        default:
+            return false
+        }
+
+        return true
+    }
+
+    private func keyStep(for event: NSEvent) -> CGFloat {
+        event.modifierFlags.intersection(.deviceIndependentFlagsMask).contains(.shift) ? 10 : 1
+    }
+
+    private func drawShape(
+        _ shape: GraphShape,
+        in context: inout GraphicsContext,
+        size: CGSize,
+        fill: Bool,
+        isSelected: Bool
+    ) {
+        switch shape {
+        case let .circle(circle):
+            drawCircle(circle, in: &context, fill: fill, opacity: 1, isSelected: isSelected)
+        case let .grid(grid):
+            drawGrid(grid, in: &context, size: size, isSelected: isSelected)
+        }
+
+        if shape.showsCentroidCrossByDefault || isSelected {
+            drawCentroidCross(at: shape.centroid, in: &context, isSelected: isSelected)
+        }
+    }
+
+    private func drawCircle(
         _ circle: DrawnCircle,
         in context: inout GraphicsContext,
         fill: Bool,
@@ -150,57 +195,42 @@ struct ContentView: View {
         }
     }
 
-    private func handleKeyDown(_ event: NSEvent) -> Bool {
-        switch event.keyCode {
-        case 123:
-            content.selectPreviousAxis()
-        case 124:
-            content.selectNextAxis()
-        case 125:
-            content.applyLinearOperation(delta: -1)
-        case 126:
-            content.applyLinearOperation(delta: 1)
-        default:
-            return false
-        }
-
-        return true
-    }
-
-    private func drawGrid(in context: inout GraphicsContext, size: CGSize) {
+    private func drawGrid(_ grid: DrawnGrid, in context: inout GraphicsContext, size: CGSize, isSelected: Bool) {
         var path = Path()
-        let step: CGFloat = 24
+        let step = max(grid.spacing, 4)
+        let startX = Self.firstVisibleLineOffset(for: grid.origin.x, step: step)
+        let startY = Self.firstVisibleLineOffset(for: grid.origin.y, step: step)
 
-        stride(from: CGFloat.zero, through: size.width, by: step).forEach { gridX in
+        stride(from: startX, through: size.width, by: step).forEach { gridX in
             path.move(to: CGPoint(x: gridX, y: 0))
             path.addLine(to: CGPoint(x: gridX, y: size.height))
         }
 
-        stride(from: CGFloat.zero, through: size.height, by: step).forEach { gridY in
+        stride(from: startY, through: size.height, by: step).forEach { gridY in
             path.move(to: CGPoint(x: 0, y: gridY))
             path.addLine(to: CGPoint(x: size.width, y: gridY))
         }
 
-        context.stroke(path, with: .color(Color.secondary.opacity(0.12)), lineWidth: 0.5)
+        let opacity = isSelected ? 0.28 : 0.16
+        context.stroke(path, with: .color(Color.gray.opacity(opacity)), lineWidth: 0.5)
     }
 
-    private static func circle(from start: CGPoint, to end: CGPoint, color: Color, lineWidth: CGFloat) -> DrawnCircle {
-        let rect = circleRect(from: start, to: end)
+    private func drawCentroidCross(at point: CGPoint, in context: inout GraphicsContext, isSelected: Bool) {
+        var path = Path()
+        let length: CGFloat = isSelected ? 16 : 12
 
-        return DrawnCircle(
-            center: CGPoint(x: rect.midX, y: rect.midY),
-            diameter: rect.width,
-            color: color,
-            lineWidth: lineWidth
-        )
+        path.move(to: CGPoint(x: point.x - length / 2, y: point.y))
+        path.addLine(to: CGPoint(x: point.x + length / 2, y: point.y))
+        path.move(to: CGPoint(x: point.x, y: point.y - length / 2))
+        path.addLine(to: CGPoint(x: point.x, y: point.y + length / 2))
+
+        let opacity = isSelected ? 0.55 : 0.35
+        context.stroke(path, with: .color(Color.gray.opacity(opacity)), lineWidth: 0.75)
     }
 
-    private static func circleRect(from start: CGPoint, to end: CGPoint) -> CGRect {
-        let diameter = min(abs(end.x - start.x), abs(end.y - start.y))
-        let originX = end.x >= start.x ? start.x : start.x - diameter
-        let originY = end.y >= start.y ? start.y : start.y - diameter
-
-        return CGRect(x: originX, y: originY, width: diameter, height: diameter)
+    private static func firstVisibleLineOffset(for origin: CGFloat, step: CGFloat) -> CGFloat {
+        let remainder = origin.truncatingRemainder(dividingBy: step)
+        return remainder >= 0 ? remainder : remainder + step
     }
 
     private static func clamp(_ point: CGPoint, in size: CGSize) -> CGPoint {

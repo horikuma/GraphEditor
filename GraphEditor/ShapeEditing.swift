@@ -6,6 +6,9 @@ enum OperationAxis: CaseIterable {
     case yCoordinate
     case width
     case height
+    case spacing
+    case xOffset
+    case yOffset
 
     var title: String {
         switch self {
@@ -19,6 +22,12 @@ enum OperationAxis: CaseIterable {
             return "Width"
         case .height:
             return "Height"
+        case .spacing:
+            return "間隔"
+        case .xOffset:
+            return "X軸移動"
+        case .yOffset:
+            return "Y軸移動"
         }
     }
 
@@ -34,6 +43,12 @@ enum OperationAxis: CaseIterable {
             return .width
         case .height:
             return .height
+        case .spacing:
+            return .spacing
+        case .xOffset:
+            return .xOffset
+        case .yOffset:
+            return .yOffset
         }
     }
 }
@@ -43,9 +58,15 @@ enum ShapeEditableProperty {
     case yCoordinate
     case width
     case height
+    case spacing
+    case xOffset
+    case yOffset
 }
 
 protocol EditableShape {
+    var centroid: CGPoint { get }
+    var supportedOperationAxes: [OperationAxis] { get }
+
     func value(for property: ShapeEditableProperty) -> CGFloat
     mutating func move(property: ShapeEditableProperty, by delta: CGFloat)
 }
