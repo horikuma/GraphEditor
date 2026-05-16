@@ -1,4 +1,4 @@
-import CoreGraphics
+import Foundation
 
 enum OperationAxis: CaseIterable {
     case shapeSelection
@@ -64,9 +64,9 @@ enum ShapeEditableProperty {
 }
 
 protocol EditableShape {
-    var centroid: CGPoint { get }
+    var centroid: LogicPoint { get }
     var supportedOperationAxes: [OperationAxis] { get }
 
-    func value(for property: ShapeEditableProperty) -> CGFloat
-    mutating func move(property: ShapeEditableProperty, by delta: CGFloat)
+    func value(for property: ShapeEditableProperty) -> Double
+    mutating func move(property: ShapeEditableProperty, by delta: Double)
 }

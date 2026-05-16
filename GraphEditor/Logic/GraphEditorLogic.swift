@@ -1,44 +1,4 @@
-import AppKit
-import SwiftUI
-
-enum DrawingPrimitive: Identifiable {
-    case circle(CircleDrawingInfo)
-    case grid(GridDrawingInfo)
-    case centroidCross(CentroidCrossDrawingInfo)
-
-    var id: UUID {
-        switch self {
-        case let .circle(info):
-            return info.id
-        case let .grid(info):
-            return info.id
-        case let .centroidCross(info):
-            return info.id
-        }
-    }
-}
-
-struct CircleDrawingInfo {
-    let id: UUID
-    let rect: CGRect
-    let color: Color
-    let lineWidth: CGFloat
-    let fill: Bool
-    let isSelected: Bool
-}
-
-struct GridDrawingInfo {
-    let id: UUID
-    let verticalLinePositions: [CGFloat]
-    let horizontalLinePositions: [CGFloat]
-    let isSelected: Bool
-}
-
-struct CentroidCrossDrawingInfo {
-    let id: UUID
-    let point: CGPoint
-    let isSelected: Bool
-}
+import Foundation
 
 struct EditorStatusInfo {
     let objectCountText: String
@@ -47,15 +7,21 @@ struct EditorStatusInfo {
     let operationValueText: String
 }
 
-final class GraphEditorLogic: ObservableObject {
-    @Published var addableShapeKind = AddableShapeKind.circle
-    @Published var strokeColor = Color.accentColor
-    @Published var lineWidth = 3.0
-    @Published var fillCircles = false
+struct LogicSnapshot {
+    let shapes: [GraphShape]
+    let selectedShapeID: GraphShape.ID?
+    let fillCircles: Bool
+}
 
-    @Published private var shapes: [GraphShape]
-    @Published private var selectedShapeID: GraphShape.ID?
-    @Published private var operationAxis = OperationAxis.shapeSelection
+final class GraphEditorLogic {
+    var addableShapeKind = AddableShapeKind.circle
+    var strokeColor = LogicColor.accent
+    var lineWidth = 3.0
+    var fillCircles = false
+
+    private var shapes: [GraphShape]
+    private var selectedShapeID: GraphShape.ID?
+    private var operationAxis = OperationAxis.shapeSelection
 
     init() {
         let grid = GraphShape.grid(DrawnGrid(origin: .zero, spacing: 24))
@@ -76,10 +42,8 @@ final class GraphEditorLogic: ObservableObject {
         shapes.isEmpty
     }
 
-    func drawingPrimitives(in size: CGSize) -> [DrawingPrimitive] {
-        let grids = shapes.filter(\.isGrid).flatMap { drawingPrimitives(for: $0, in: size) }
-        let nonGrids = shapes.filter { !$0.isGrid }.flatMap { drawingPrimitives(for: $0, in: size) }
-        return grids + nonGrids
+    var snapshot: LogicSnapshot {
+        LogicSnapshot(shapes: shapes, selectedShapeID: selectedShapeID, fillCircles: fillCircles)
     }
 
     func clear() {
@@ -89,7 +53,7 @@ final class GraphEditorLogic: ObservableObject {
         operationAxis = .shapeSelection
     }
 
-    func appendShape(at location: CGPoint, in size: CGSize) {
+    func appendShape(at location: LogicPoint, in size: LogicSize) {
         let clampedLocation = Self.clamp(location, in: size)
 
         switch addableShapeKind {
@@ -109,18 +73,16 @@ final class GraphEditorLogic: ObservableObject {
         }
     }
 
-    func handleKeyDown(_ event: NSEvent) -> Bool {
-        switch event.keyCode {
-        case 123:
+    func handleKeyCommand(_ command: LogicKeyCommand, modifiers: LogicKeyModifiers) -> Bool {
+        switch command {
+        case .left:
             selectPreviousAxis()
-        case 124:
+        case .right:
             selectNextAxis()
-        case 125:
-            applyLinearOperation(delta: -keyStep(for: event))
-        case 126:
-            applyLinearOperation(delta: keyStep(for: event))
-        default:
-            return false
+        case .arrowDown:
+            applyLinearOperation(delta: -keyStep(for: modifiers))
+        case .arrowUp:
+            applyLinearOperation(delta: keyStep(for: modifiers))
         }
 
         return true
@@ -184,7 +146,7 @@ final class GraphEditorLogic: ObservableObject {
         selectAxis(step: 1)
     }
 
-    private func applyLinearOperation(delta: CGFloat) {
+    private func applyLinearOperation(delta: Double) {
         guard !shapes.isEmpty else {
             selectedShapeID = nil
             return
@@ -247,79 +209,14 @@ final class GraphEditorLogic: ObservableObject {
         operationAxis = .shapeSelection
     }
 
-    private func keyStep(for event: NSEvent) -> CGFloat {
-        event.modifierFlags.intersection(.deviceIndependentFlagsMask).contains(.shift) ? 10 : 1
+    private func keyStep(for modifiers: LogicKeyModifiers) -> Double {
+        modifiers.isShiftPressed ? 10 : 1
     }
 
-    private func drawingPrimitives(for shape: GraphShape, in size: CGSize) -> [DrawingPrimitive] {
-        var primitives: [DrawingPrimitive] = []
-        let isSelected = shape.id == selectedShapeID
-
-        switch shape {
-        case let .circle(circle):
-            primitives.append(
-                .circle(
-                    CircleDrawingInfo(
-                        id: circle.id,
-                        rect: circle.rect,
-                        color: circle.color,
-                        lineWidth: circle.lineWidth,
-                        fill: fillCircles,
-                        isSelected: isSelected
-                    )
-                )
-            )
-        case let .grid(grid):
-            primitives.append(
-                .grid(
-                    GridDrawingInfo(
-                        id: grid.id,
-                        verticalLinePositions: Self.linePositions(
-                            origin: grid.origin.x,
-                            step: grid.spacing,
-                            limit: size.width
-                        ),
-                        horizontalLinePositions: Self.linePositions(
-                            origin: grid.origin.y,
-                            step: grid.spacing,
-                            limit: size.height
-                        ),
-                        isSelected: isSelected
-                    )
-                )
-            )
-        }
-
-        if shape.showsCentroidCrossByDefault || isSelected {
-            primitives.append(
-                .centroidCross(
-                    CentroidCrossDrawingInfo(
-                        id: UUID(),
-                        point: shape.centroid,
-                        isSelected: isSelected
-                    )
-                )
-            )
-        }
-
-        return primitives
-    }
-
-    private static func linePositions(origin: CGFloat, step: CGFloat, limit: CGFloat) -> [CGFloat] {
-        let normalizedStep = max(step, 4)
-        let start = firstVisibleLineOffset(for: origin, step: normalizedStep)
-        return Array(stride(from: start, through: limit, by: normalizedStep))
-    }
-
-    private static func firstVisibleLineOffset(for origin: CGFloat, step: CGFloat) -> CGFloat {
-        let remainder = origin.truncatingRemainder(dividingBy: step)
-        return remainder >= 0 ? remainder : remainder + step
-    }
-
-    private static func clamp(_ point: CGPoint, in size: CGSize) -> CGPoint {
-        CGPoint(
-            x: min(max(point.x, 0), size.width),
-            y: min(max(point.y, 0), size.height)
+    private static func clamp(_ point: LogicPoint, in size: LogicSize) -> LogicPoint {
+        LogicPoint(
+            xCoordinate: min(max(point.xCoordinate, 0), size.width),
+            yCoordinate: min(max(point.yCoordinate, 0), size.height)
         )
     }
 }

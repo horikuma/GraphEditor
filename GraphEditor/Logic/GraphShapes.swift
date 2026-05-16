@@ -1,4 +1,25 @@
-import SwiftUI
+import Foundation
+
+struct LogicPoint {
+    var xCoordinate: Double
+    var yCoordinate: Double
+
+    static let zero = LogicPoint(xCoordinate: 0, yCoordinate: 0)
+}
+
+struct LogicSize {
+    var width: Double
+    var height: Double
+}
+
+struct LogicColor {
+    var red: Double
+    var green: Double
+    var blue: Double
+    var opacity: Double
+
+    static let accent = LogicColor(red: 0, green: 0.478, blue: 1, opacity: 1)
+}
 
 enum AddableShapeKind: String, CaseIterable, Identifiable {
     case circle
@@ -18,14 +39,25 @@ enum AddableShapeKind: String, CaseIterable, Identifiable {
     }
 }
 
+enum LogicKeyCommand {
+    case left
+    case right
+    case arrowDown
+    case arrowUp
+}
+
+struct LogicKeyModifiers {
+    var isShiftPressed: Bool
+}
+
 struct DrawnCircle: Identifiable, EditableShape {
     let id = UUID()
-    var center: CGPoint
-    var diameter: CGFloat
-    let color: Color
-    let lineWidth: CGFloat
+    var center: LogicPoint
+    var diameter: Double
+    let color: LogicColor
+    let lineWidth: Double
 
-    var centroid: CGPoint {
+    var centroid: LogicPoint {
         center
     }
 
@@ -33,21 +65,12 @@ struct DrawnCircle: Identifiable, EditableShape {
         [.shapeSelection, .xCoordinate, .yCoordinate, .width, .height]
     }
 
-    var rect: CGRect {
-        CGRect(
-            x: center.x - diameter / 2,
-            y: center.y - diameter / 2,
-            width: diameter,
-            height: diameter
-        )
-    }
-
-    func value(for property: ShapeEditableProperty) -> CGFloat {
+    func value(for property: ShapeEditableProperty) -> Double {
         switch property {
         case .xCoordinate:
-            return center.x
+            return center.xCoordinate
         case .yCoordinate:
-            return center.y
+            return center.yCoordinate
         case .width:
             return diameter
         case .height:
@@ -57,12 +80,12 @@ struct DrawnCircle: Identifiable, EditableShape {
         }
     }
 
-    mutating func move(property: ShapeEditableProperty, by delta: CGFloat) {
+    mutating func move(property: ShapeEditableProperty, by delta: Double) {
         switch property {
         case .xCoordinate:
-            center.x += delta
+            center.xCoordinate += delta
         case .yCoordinate:
-            center.y -= delta
+            center.yCoordinate -= delta
         case .width, .height:
             diameter = max(4, diameter + delta)
         case .spacing, .xOffset, .yOffset:
@@ -73,10 +96,10 @@ struct DrawnCircle: Identifiable, EditableShape {
 
 struct DrawnGrid: Identifiable, EditableShape {
     let id = UUID()
-    var origin: CGPoint
-    var spacing: CGFloat
+    var origin: LogicPoint
+    var spacing: Double
 
-    var centroid: CGPoint {
+    var centroid: LogicPoint {
         origin
     }
 
@@ -84,27 +107,27 @@ struct DrawnGrid: Identifiable, EditableShape {
         [.shapeSelection, .spacing, .xOffset, .yOffset]
     }
 
-    func value(for property: ShapeEditableProperty) -> CGFloat {
+    func value(for property: ShapeEditableProperty) -> Double {
         switch property {
         case .spacing:
             return spacing
         case .xOffset:
-            return origin.x
+            return origin.xCoordinate
         case .yOffset:
-            return origin.y
+            return origin.yCoordinate
         case .xCoordinate, .yCoordinate, .width, .height:
             return 0
         }
     }
 
-    mutating func move(property: ShapeEditableProperty, by delta: CGFloat) {
+    mutating func move(property: ShapeEditableProperty, by delta: Double) {
         switch property {
         case .spacing:
             spacing = max(4, spacing + delta)
         case .xOffset:
-            origin.x += delta
+            origin.xCoordinate += delta
         case .yOffset:
-            origin.y -= delta
+            origin.yCoordinate -= delta
         case .xCoordinate, .yCoordinate, .width, .height:
             break
         }
@@ -150,7 +173,7 @@ enum GraphShape: Identifiable {
         }
     }
 
-    var centroid: CGPoint {
+    var centroid: LogicPoint {
         switch self {
         case let .circle(circle):
             return circle.centroid
@@ -168,7 +191,7 @@ enum GraphShape: Identifiable {
         }
     }
 
-    func value(for property: ShapeEditableProperty) -> CGFloat {
+    func value(for property: ShapeEditableProperty) -> Double {
         switch self {
         case let .circle(circle):
             return circle.value(for: property)
@@ -177,7 +200,7 @@ enum GraphShape: Identifiable {
         }
     }
 
-    mutating func move(property: ShapeEditableProperty, by delta: CGFloat) {
+    mutating func move(property: ShapeEditableProperty, by delta: Double) {
         switch self {
         case var .circle(circle):
             circle.move(property: property, by: delta)

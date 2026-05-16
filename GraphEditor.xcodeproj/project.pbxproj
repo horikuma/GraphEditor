@@ -13,6 +13,7 @@
 		00A0000A0000000000000004 /* ShapeEditing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000005 /* ShapeEditing.swift */; };
 		00A0000A0000000000000005 /* GraphShapes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000006 /* GraphShapes.swift */; };
 		00A0000A0000000000000006 /* KeyEventHandlingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000007 /* KeyEventHandlingView.swift */; };
+		00A0000A0000000000000007 /* GraphEditorBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000008 /* GraphEditorBridge.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -23,6 +24,7 @@
 		00A0000B0000000000000005 /* ShapeEditing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/ShapeEditing.swift; sourceTree = "<group>"; };
 		00A0000B0000000000000006 /* GraphShapes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/GraphShapes.swift; sourceTree = "<group>"; };
 		00A0000B0000000000000007 /* KeyEventHandlingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/KeyEventHandlingView.swift; sourceTree = "<group>"; };
+		00A0000B0000000000000008 /* GraphEditorBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bridge/GraphEditorBridge.swift; sourceTree = "<group>"; };
 		00A0000C0000000000000001 /* GraphEditor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GraphEditor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -52,6 +54,7 @@
 				00A0000B0000000000000004 /* GraphEditorLogic.swift */,
 				00A0000B0000000000000006 /* GraphShapes.swift */,
 				00A0000B0000000000000005 /* ShapeEditing.swift */,
+				00A0000B0000000000000008 /* GraphEditorBridge.swift */,
 				00A0000B0000000000000002 /* ContentView.swift */,
 				00A0000B0000000000000007 /* KeyEventHandlingView.swift */,
 				00A0000B0000000000000003 /* Info.plist */,
@@ -139,6 +142,7 @@
 				00A0000A0000000000000003 /* GraphEditorLogic.swift in Sources */,
 				00A0000A0000000000000005 /* GraphShapes.swift in Sources */,
 				00A0000A0000000000000004 /* ShapeEditing.swift in Sources */,
+				00A0000A0000000000000007 /* GraphEditorBridge.swift in Sources */,
 				00A0000A0000000000000006 /* KeyEventHandlingView.swift in Sources */,
 				00A0000A0000000000000002 /* ContentView.swift in Sources */,
 			);

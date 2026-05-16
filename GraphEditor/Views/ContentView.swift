@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var logic = GraphEditorLogic()
+    @StateObject private var bridge = GraphEditorBridge()
 
     var body: some View {
         VStack(spacing: 0) {
@@ -16,7 +16,7 @@ struct ContentView: View {
 
     private var toolbar: some View {
         HStack(spacing: 12) {
-            Picker("追加", selection: $logic.addableShapeKind) {
+            Picker("追加", selection: $bridge.addableShapeKind) {
                 ForEach(AddableShapeKind.allCases) { shapeKind in
                     Text(shapeKind.title).tag(shapeKind)
                 }
@@ -25,33 +25,33 @@ struct ContentView: View {
             .frame(width: 140)
             .help("追加する図形")
 
-            ColorPicker("Stroke", selection: $logic.strokeColor)
+            ColorPicker("Stroke", selection: $bridge.strokeColor)
                 .labelsHidden()
                 .help("線の色")
 
-            Slider(value: $logic.lineWidth, in: 1...16, step: 1) {
+            Slider(value: $bridge.lineWidth, in: 1...16, step: 1) {
                 Text("線幅")
             }
             .frame(width: 140)
             .help("線幅")
 
-            Text("\(Int(logic.lineWidth)) px")
+            Text("\(Int(bridge.lineWidth)) px")
                 .font(.system(.caption, design: .monospaced))
                 .foregroundStyle(.secondary)
                 .frame(width: 44, alignment: .leading)
 
-            Toggle("Fill", isOn: $logic.fillCircles)
+            Toggle("Fill", isOn: $bridge.fillCircles)
                 .toggleStyle(.switch)
                 .help("円を塗りつぶす")
 
             Spacer()
 
             Button {
-                logic.clear()
+                bridge.clear()
             } label: {
                 Label("Clear", systemImage: "trash")
             }
-            .disabled(logic.isClearDisabled)
+            .disabled(bridge.isClearDisabled)
             .help("すべて消去")
         }
         .padding(.horizontal, 14)
@@ -64,13 +64,13 @@ struct ContentView: View {
                 let background = Path(CGRect(origin: .zero, size: size))
                 context.fill(background, with: .color(Color(nsColor: .textBackgroundColor)))
 
-                for primitive in logic.drawingPrimitives(in: size) {
+                for primitive in bridge.drawingPrimitives(in: size) {
                     draw(primitive, in: &context, size: size)
                 }
             }
-            .background(KeyEventHandlingView(onKeyDown: logic.handleKeyDown))
+            .background(KeyEventHandlingView(onKeyDown: bridge.handleKeyDown))
             .overlay(alignment: .bottomLeading) {
-                let status = logic.statusInfo
+                let status = bridge.statusInfo
                 HStack(spacing: 14) {
                     Text(status.objectCountText)
                     Text(status.selectedShapeText)
@@ -88,7 +88,7 @@ struct ContentView: View {
             .gesture(
                 SpatialTapGesture(coordinateSpace: .local)
                     .onEnded { value in
-                        logic.appendShape(at: value.location, in: geometry.size)
+                        bridge.appendShape(at: value.location, in: geometry.size)
                     }
             )
         }
