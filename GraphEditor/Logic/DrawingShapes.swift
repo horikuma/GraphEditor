@@ -181,7 +181,7 @@ struct DrawnGrid: Identifiable, EditableShape {
     }
 }
 
-enum GraphShape: Identifiable {
+enum DrawingShape: Identifiable {
     case circle(DrawnCircle)
     case grid(DrawnGrid)
 

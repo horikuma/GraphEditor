@@ -74,7 +74,7 @@ struct ContentView: View {
             }
             .background(KeyEventHandlingView(onKeyDown: bridge.handleKeyDown))
             .overlay(alignment: .bottomLeading) {
-                let status = bridge.statusInfo
+                let status = bridge.status
                 HStack(spacing: 14) {
                     Text(status.objectCountText)
                     Text(status.selectedShapeText)
@@ -143,7 +143,7 @@ struct ContentView: View {
         .background(Color(nsColor: .controlBackgroundColor))
     }
 
-    private func groupTreeRow(_ row: GroupTreeRowInfo) -> some View {
+    private func groupTreeRow(_ row: GroupTreeRow) -> some View {
         HStack(spacing: 6) {
             Image(systemName: row.isGroup ? "folder" : "circle.fill")
                 .font(.system(size: 11))
@@ -195,17 +195,17 @@ struct ContentView: View {
         }
     }
 
-    private func drawCircle(_ info: CircleDrawingInfo, in context: inout GraphicsContext) {
-        let path = Path(ellipseIn: info.rect)
-        let color = info.color
+    private func drawCircle(_ circle: CirclePrimitive, in context: inout GraphicsContext) {
+        let path = Path(ellipseIn: circle.rect)
+        let color = circle.color
 
-        if info.fill {
+        if circle.fill {
             context.fill(path, with: .color(color.opacity(0.18)))
         }
-        context.stroke(path, with: .color(color), lineWidth: info.lineWidth)
+        context.stroke(path, with: .color(color), lineWidth: circle.lineWidth)
 
-        if info.isSelected {
-            let selectionRect = info.rect.insetBy(dx: -5, dy: -5)
+        if circle.isSelected {
+            let selectionRect = circle.rect.insetBy(dx: -5, dy: -5)
             context.stroke(
                 Path(selectionRect),
                 with: .color(Color.primary.opacity(0.45)),
@@ -214,33 +214,33 @@ struct ContentView: View {
         }
     }
 
-    private func drawGrid(_ info: GridDrawingInfo, in context: inout GraphicsContext, size: CGSize) {
+    private func drawGrid(_ grid: GridPrimitive, in context: inout GraphicsContext, size: CGSize) {
         var path = Path()
 
-        info.verticalLinePositions.forEach { gridX in
+        grid.verticalLinePositions.forEach { gridX in
             path.move(to: CGPoint(x: gridX, y: 0))
             path.addLine(to: CGPoint(x: gridX, y: size.height))
         }
 
-        info.horizontalLinePositions.forEach { gridY in
+        grid.horizontalLinePositions.forEach { gridY in
             path.move(to: CGPoint(x: 0, y: gridY))
             path.addLine(to: CGPoint(x: size.width, y: gridY))
         }
 
-        let opacity = info.isSelected ? 0.28 : 0.16
+        let opacity = grid.isSelected ? 0.28 : 0.16
         context.stroke(path, with: .color(Color.gray.opacity(opacity)), lineWidth: 0.5)
     }
 
-    private func drawCentroidCross(_ info: CentroidCrossDrawingInfo, in context: inout GraphicsContext) {
+    private func drawCentroidCross(_ cross: CentroidCrossPrimitive, in context: inout GraphicsContext) {
         var path = Path()
-        let length: CGFloat = info.isSelected ? 16 : 12
+        let length: CGFloat = cross.isSelected ? 16 : 12
 
-        path.move(to: CGPoint(x: info.point.x - length / 2, y: info.point.y))
-        path.addLine(to: CGPoint(x: info.point.x + length / 2, y: info.point.y))
-        path.move(to: CGPoint(x: info.point.x, y: info.point.y - length / 2))
-        path.addLine(to: CGPoint(x: info.point.x, y: info.point.y + length / 2))
+        path.move(to: CGPoint(x: cross.point.x - length / 2, y: cross.point.y))
+        path.addLine(to: CGPoint(x: cross.point.x + length / 2, y: cross.point.y))
+        path.move(to: CGPoint(x: cross.point.x, y: cross.point.y - length / 2))
+        path.addLine(to: CGPoint(x: cross.point.x, y: cross.point.y + length / 2))
 
-        let opacity = info.isSelected ? 0.55 : 0.35
+        let opacity = cross.isSelected ? 0.55 : 0.35
         context.stroke(path, with: .color(Color.gray.opacity(opacity)), lineWidth: 0.75)
     }
 

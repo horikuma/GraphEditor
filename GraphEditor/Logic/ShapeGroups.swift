@@ -1,8 +1,8 @@
 import Foundation
 
-indirect enum GraphShapeGroupElement {
-    case group(GraphShapeGroup)
-    case shape(GraphShape)
+indirect enum ShapeGroupElement {
+    case group(ShapeGroup)
+    case shape(DrawingShape)
 
     var id: UUID {
         switch self {
@@ -30,7 +30,7 @@ indirect enum GraphShapeGroupElement {
         return false
     }
 
-    var shapeIDs: Set<GraphShape.ID> {
+    var shapeIDs: Set<DrawingShape.ID> {
         Set(flattenedShapes.map(\.id))
     }
 
@@ -39,26 +39,26 @@ indirect enum GraphShapeGroupElement {
     }
 }
 
-struct GraphShapeGroup: Identifiable {
+struct ShapeGroup: Identifiable {
     let id: UUID
     var title: String
-    var children: [GraphShapeGroupElement]
+    var children: [ShapeGroupElement]
 
-    init(id: UUID = UUID(), title: String, children: [GraphShapeGroupElement]) {
+    init(id: UUID = UUID(), title: String, children: [ShapeGroupElement]) {
         self.id = id
         self.title = title
         self.children = children
     }
 
-    static func primitiveGroup(for shape: GraphShape) -> GraphShapeGroup {
-        GraphShapeGroup(title: shape.title, children: [.shape(shape)])
+    static func primitiveGroup(for shape: DrawingShape) -> ShapeGroup {
+        ShapeGroup(title: shape.title, children: [.shape(shape)])
     }
 
-    var flattenedShapes: [GraphShape] {
+    var flattenedShapes: [DrawingShape] {
         children.flatMap(\.flattenedShapes)
     }
 
-    var shapeIDs: Set<GraphShape.ID> {
+    var shapeIDs: Set<DrawingShape.ID> {
         Set(flattenedShapes.map(\.id))
     }
 
@@ -66,7 +66,7 @@ struct GraphShapeGroup: Identifiable {
         flattenedShapes.count
     }
 
-    var childGroups: [GraphShapeGroup] {
+    var childGroups: [ShapeGroup] {
         children.compactMap(\.group)
     }
 
@@ -94,7 +94,7 @@ struct GraphShapeGroup: Identifiable {
         }
     }
 
-    func group(id: UUID) -> GraphShapeGroup? {
+    func group(id: UUID) -> ShapeGroup? {
         if self.id == id {
             return self
         }
@@ -109,14 +109,14 @@ struct GraphShapeGroup: Identifiable {
     }
 
     @discardableResult
-    mutating func appendChild(_ child: GraphShapeGroupElement, toGroup id: UUID) -> Bool {
+    mutating func appendChild(_ child: ShapeGroupElement, toGroup id: UUID) -> Bool {
         updateGroup(id: id) { group in
             group.children.append(child)
         }
     }
 
     @discardableResult
-    mutating func updateGroup(id: UUID, transform: (inout GraphShapeGroup) -> Void) -> Bool {
+    mutating func updateGroup(id: UUID, transform: (inout ShapeGroup) -> Void) -> Bool {
         if self.id == id {
             transform(&self)
             return true
@@ -137,8 +137,8 @@ struct GraphShapeGroup: Identifiable {
     }
 }
 
-extension GraphShapeGroupElement {
-    var flattenedShapes: [GraphShape] {
+extension ShapeGroupElement {
+    var flattenedShapes: [DrawingShape] {
         switch self {
         case let .group(group):
             return group.flattenedShapes
@@ -147,7 +147,7 @@ extension GraphShapeGroupElement {
         }
     }
 
-    var group: GraphShapeGroup? {
+    var group: ShapeGroup? {
         guard case let .group(group) = self else {
             return nil
         }
@@ -155,7 +155,7 @@ extension GraphShapeGroupElement {
         return group
     }
 
-    func group(id: UUID) -> GraphShapeGroup? {
+    func group(id: UUID) -> ShapeGroup? {
         switch self {
         case let .group(group):
             return group.group(id: id)

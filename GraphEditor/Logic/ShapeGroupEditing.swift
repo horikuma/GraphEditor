@@ -1,7 +1,7 @@
 import Foundation
 
-enum GraphShapeGroupEditing {
-    static func supportedOperationAxes(for group: GraphShapeGroup) -> [OperationAxis] {
+enum ShapeGroupEditing {
+    static func supportedOperationAxes(for group: ShapeGroup) -> [OperationAxis] {
         let shapes = group.flattenedShapes
         guard !shapes.isEmpty else {
             return [.shapeSelection]
@@ -14,7 +14,7 @@ enum GraphShapeGroupEditing {
         return [.shapeSelection, .xCoordinate, .yCoordinate, .width, .height]
     }
 
-    static func value(for property: ShapeEditableProperty, in group: GraphShapeGroup) -> Double {
+    static func value(for property: ShapeEditableProperty, in group: ShapeGroup) -> Double {
         switch property {
         case .xCoordinate:
             return group.centroid.xCoordinate
@@ -31,10 +31,10 @@ enum GraphShapeGroupEditing {
 
     @discardableResult
     static func moveGroup(
-        id: GraphShapeGroup.ID,
+        id: ShapeGroup.ID,
         property: ShapeEditableProperty,
         by delta: Double,
-        in rootGroup: inout GraphShapeGroup
+        in rootGroup: inout ShapeGroup
     ) -> Bool {
         rootGroup.updateGroup(id: id) { group in
             move(property: property, by: delta, in: &group)
@@ -45,14 +45,14 @@ enum GraphShapeGroupEditing {
         ids: Set<UUID>,
         property: ShapeEditableProperty,
         by delta: Double,
-        in rootGroup: inout GraphShapeGroup
+        in rootGroup: inout ShapeGroup
     ) {
         for index in rootGroup.children.indices where ids.contains(rootGroup.children[index].id) {
             move(property: property, by: delta, in: &rootGroup.children[index])
         }
     }
 
-    private static func firstShapeValue(for property: ShapeEditableProperty, in group: GraphShapeGroup) -> Double {
+    private static func firstShapeValue(for property: ShapeEditableProperty, in group: ShapeGroup) -> Double {
         group.flattenedShapes.first { shape in
             shape.supportedOperationAxes.contains {
                 $0.editableProperty == property
@@ -60,7 +60,7 @@ enum GraphShapeGroupEditing {
         }?.value(for: property) ?? 0
     }
 
-    private static func move(property: ShapeEditableProperty, by delta: Double, in group: inout GraphShapeGroup) {
+    private static func move(property: ShapeEditableProperty, by delta: Double, in group: inout ShapeGroup) {
         switch property {
         case .xCoordinate:
             translateBy(xDelta: delta, yDelta: 0, in: &group)
@@ -76,7 +76,7 @@ enum GraphShapeGroupEditing {
     private static func move(
         property: ShapeEditableProperty,
         by delta: Double,
-        in element: inout GraphShapeGroupElement
+        in element: inout ShapeGroupElement
     ) {
         switch element {
         case var .group(group):
@@ -92,13 +92,13 @@ enum GraphShapeGroupEditing {
         }
     }
 
-    private static func translateBy(xDelta: Double, yDelta: Double, in group: inout GraphShapeGroup) {
+    private static func translateBy(xDelta: Double, yDelta: Double, in group: inout ShapeGroup) {
         for index in group.children.indices {
             translateBy(xDelta: xDelta, yDelta: yDelta, in: &group.children[index])
         }
     }
 
-    private static func translateBy(xDelta: Double, yDelta: Double, in element: inout GraphShapeGroupElement) {
+    private static func translateBy(xDelta: Double, yDelta: Double, in element: inout ShapeGroupElement) {
         switch element {
         case var .group(group):
             translateBy(xDelta: xDelta, yDelta: yDelta, in: &group)

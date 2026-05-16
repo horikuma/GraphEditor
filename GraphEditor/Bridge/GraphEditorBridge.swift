@@ -2,9 +2,9 @@ import AppKit
 import SwiftUI
 
 enum DrawingPrimitive: Identifiable {
-    case circle(CircleDrawingInfo)
-    case grid(GridDrawingInfo)
-    case centroidCross(CentroidCrossDrawingInfo)
+    case circle(CirclePrimitive)
+    case grid(GridPrimitive)
+    case centroidCross(CentroidCrossPrimitive)
 
     var id: UUID {
         switch self {
@@ -18,7 +18,7 @@ enum DrawingPrimitive: Identifiable {
     }
 }
 
-struct CircleDrawingInfo {
+struct CirclePrimitive {
     let id: UUID
     let rect: CGRect
     let color: Color
@@ -27,14 +27,14 @@ struct CircleDrawingInfo {
     let isSelected: Bool
 }
 
-struct GridDrawingInfo {
+struct GridPrimitive {
     let id: UUID
     let verticalLinePositions: [CGFloat]
     let horizontalLinePositions: [CGFloat]
     let isSelected: Bool
 }
 
-struct CentroidCrossDrawingInfo {
+struct CentroidCrossPrimitive {
     let id: UUID
     let point: CGPoint
     let isSelected: Bool
@@ -83,11 +83,11 @@ final class GraphEditorBridge: ObservableObject {
         }
     }
 
-    var statusInfo: EditorStatusInfo {
-        logic.statusInfo
+    var status: EditorStatus {
+        logic.status
     }
 
-    var groupTreeRows: [GroupTreeRowInfo] {
+    var groupTreeRows: [GroupTreeRow] {
         logic.groupTreeRows
     }
 
@@ -157,7 +157,7 @@ final class GraphEditorBridge: ObservableObject {
     }
 
     private func drawingPrimitives(
-        for shape: GraphShape,
+        for shape: DrawingShape,
         snapshot: LogicSnapshot,
         in size: CGSize
     ) -> [DrawingPrimitive] {
@@ -168,7 +168,7 @@ final class GraphEditorBridge: ObservableObject {
         case let .circle(circle):
             primitives.append(
                 .circle(
-                    CircleDrawingInfo(
+                    CirclePrimitive(
                         id: circle.id,
                         rect: Self.rect(center: circle.center, diameter: circle.diameter),
                         color: Self.color(from: circle.color),
@@ -181,7 +181,7 @@ final class GraphEditorBridge: ObservableObject {
         case let .grid(grid):
             primitives.append(
                 .grid(
-                    GridDrawingInfo(
+                    GridPrimitive(
                         id: grid.id,
                         verticalLinePositions: Self.linePositions(
                             origin: grid.origin.xCoordinate,
@@ -202,7 +202,7 @@ final class GraphEditorBridge: ObservableObject {
         if shape.showsCentroidCrossByDefault || isSelected {
             primitives.append(
                 .centroidCross(
-                    CentroidCrossDrawingInfo(
+                    CentroidCrossPrimitive(
                         id: UUID(),
                         point: Self.point(from: shape.centroid),
                         isSelected: isSelected
