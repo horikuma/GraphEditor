@@ -140,7 +140,7 @@ final class GraphEditorLogic {
                 return "なし"
             }
 
-            return "\(Int(selectedGroup.value(for: property)))"
+            return "\(Int(GraphShapeGroupEditing.value(for: property, in: selectedGroup)))"
         }
     }
 
@@ -184,12 +184,12 @@ final class GraphEditorLogic {
             let selectedGroupID,
             let selectedGroup,
             let property = operationAxis.editableProperty,
-            selectedGroup.supportedOperationAxes.contains(operationAxis)
+            GraphShapeGroupEditing.supportedOperationAxes(for: selectedGroup).contains(operationAxis)
         else {
             return
         }
 
-        rootGroup.moveGroup(id: selectedGroupID, property: property, by: delta)
+        GraphShapeGroupEditing.moveGroup(id: selectedGroupID, property: property, by: delta, in: &rootGroup)
     }
 
     private func ensureSelection() {
@@ -199,7 +199,7 @@ final class GraphEditorLogic {
 
         guard
             let selectedGroup,
-            selectedGroup.supportedOperationAxes.contains(operationAxis)
+            GraphShapeGroupEditing.supportedOperationAxes(for: selectedGroup).contains(operationAxis)
         else {
             operationAxis = .shapeSelection
             return
@@ -209,7 +209,7 @@ final class GraphEditorLogic {
     private func selectAxis(step: Int) {
         ensureSelection()
 
-        let axes = selectedGroup?.supportedOperationAxes ?? [.shapeSelection]
+        let axes = selectedGroup.map(GraphShapeGroupEditing.supportedOperationAxes) ?? [.shapeSelection]
         guard let currentIndex = axes.firstIndex(of: operationAxis) else {
             operationAxis = .shapeSelection
             return

@@ -5,7 +5,7 @@ indirect enum GraphShapeGroupElement {
     case shape(GraphShape)
 }
 
-struct GraphShapeGroup: Identifiable, EditableShape {
+struct GraphShapeGroup: Identifiable {
     let id: UUID
     var title: String
     var children: [GraphShapeGroupElement]
@@ -60,67 +60,6 @@ struct GraphShapeGroup: Identifiable, EditableShape {
         }
     }
 
-    var supportedOperationAxes: [OperationAxis] {
-        let shapes = flattenedShapes
-        guard !shapes.isEmpty else {
-            return [.shapeSelection]
-        }
-
-        if shapes.allSatisfy(\.isGrid) {
-            return [.shapeSelection, .spacing, .xOffset, .yOffset]
-        }
-
-        return [.shapeSelection, .xCoordinate, .yCoordinate, .width, .height]
-    }
-
-    func value(for property: ShapeEditableProperty) -> Double {
-        switch property {
-        case .xCoordinate:
-            return centroid.xCoordinate
-        case .yCoordinate:
-            return centroid.yCoordinate
-        case .width:
-            return bounds?.width ?? firstShapeValue(for: property)
-        case .height:
-            return bounds?.height ?? firstShapeValue(for: property)
-        case .spacing, .xOffset, .yOffset:
-            return firstShapeValue(for: property)
-        }
-    }
-
-    mutating func move(property: ShapeEditableProperty, by delta: Double) {
-        switch property {
-        case .xCoordinate:
-            translateBy(xDelta: delta, yDelta: 0)
-        case .yCoordinate:
-            translateBy(xDelta: 0, yDelta: -delta)
-        case .width, .height, .spacing, .xOffset, .yOffset:
-            for index in children.indices {
-                children[index].move(property: property, by: delta)
-            }
-        }
-    }
-
-    mutating func translateBy(xDelta: Double, yDelta: Double) {
-        for index in children.indices {
-            children[index].translateBy(xDelta: xDelta, yDelta: yDelta)
-        }
-    }
-
-    @discardableResult
-    mutating func appendChild(_ child: GraphShapeGroupElement, toGroup id: UUID) -> Bool {
-        updateGroup(id: id) { group in
-            group.children.append(child)
-        }
-    }
-
-    @discardableResult
-    mutating func moveGroup(id: UUID, property: ShapeEditableProperty, by delta: Double) -> Bool {
-        updateGroup(id: id) { group in
-            group.move(property: property, by: delta)
-        }
-    }
-
     func group(id: UUID) -> GraphShapeGroup? {
         if self.id == id {
             return self
@@ -135,7 +74,15 @@ struct GraphShapeGroup: Identifiable, EditableShape {
         return nil
     }
 
-    private mutating func updateGroup(id: UUID, transform: (inout GraphShapeGroup) -> Void) -> Bool {
+    @discardableResult
+    mutating func appendChild(_ child: GraphShapeGroupElement, toGroup id: UUID) -> Bool {
+        updateGroup(id: id) { group in
+            group.children.append(child)
+        }
+    }
+
+    @discardableResult
+    mutating func updateGroup(id: UUID, transform: (inout GraphShapeGroup) -> Void) -> Bool {
         if self.id == id {
             transform(&self)
             return true
@@ -153,14 +100,6 @@ struct GraphShapeGroup: Identifiable, EditableShape {
         }
 
         return false
-    }
-
-    private func firstShapeValue(for property: ShapeEditableProperty) -> Double {
-        flattenedShapes.first { shape in
-            shape.supportedOperationAxes.contains {
-                $0.editableProperty == property
-            }
-        }?.value(for: property) ?? 0
     }
 }
 
@@ -180,32 +119,6 @@ extension GraphShapeGroupElement {
         }
 
         return group
-    }
-
-    mutating func move(property: ShapeEditableProperty, by delta: Double) {
-        switch self {
-        case var .group(group):
-            group.move(property: property, by: delta)
-            self = .group(group)
-        case var .shape(shape):
-            guard shape.supportedOperationAxes.contains(where: { $0.editableProperty == property }) else {
-                return
-            }
-
-            shape.move(property: property, by: delta)
-            self = .shape(shape)
-        }
-    }
-
-    mutating func translateBy(xDelta: Double, yDelta: Double) {
-        switch self {
-        case var .group(group):
-            group.translateBy(xDelta: xDelta, yDelta: yDelta)
-            self = .group(group)
-        case var .shape(shape):
-            shape.translateBy(xDelta: xDelta, yDelta: yDelta)
-            self = .shape(shape)
-        }
     }
 
     func group(id: UUID) -> GraphShapeGroup? {

@@ -1,0 +1,100 @@
+import Foundation
+
+enum GraphShapeGroupEditing {
+    static func supportedOperationAxes(for group: GraphShapeGroup) -> [OperationAxis] {
+        let shapes = group.flattenedShapes
+        guard !shapes.isEmpty else {
+            return [.shapeSelection]
+        }
+
+        if shapes.allSatisfy(\.isGrid) {
+            return [.shapeSelection, .spacing, .xOffset, .yOffset]
+        }
+
+        return [.shapeSelection, .xCoordinate, .yCoordinate, .width, .height]
+    }
+
+    static func value(for property: ShapeEditableProperty, in group: GraphShapeGroup) -> Double {
+        switch property {
+        case .xCoordinate:
+            return group.centroid.xCoordinate
+        case .yCoordinate:
+            return group.centroid.yCoordinate
+        case .width:
+            return group.bounds?.width ?? firstShapeValue(for: property, in: group)
+        case .height:
+            return group.bounds?.height ?? firstShapeValue(for: property, in: group)
+        case .spacing, .xOffset, .yOffset:
+            return firstShapeValue(for: property, in: group)
+        }
+    }
+
+    @discardableResult
+    static func moveGroup(
+        id: GraphShapeGroup.ID,
+        property: ShapeEditableProperty,
+        by delta: Double,
+        in rootGroup: inout GraphShapeGroup
+    ) -> Bool {
+        rootGroup.updateGroup(id: id) { group in
+            move(property: property, by: delta, in: &group)
+        }
+    }
+
+    private static func firstShapeValue(for property: ShapeEditableProperty, in group: GraphShapeGroup) -> Double {
+        group.flattenedShapes.first { shape in
+            shape.supportedOperationAxes.contains {
+                $0.editableProperty == property
+            }
+        }?.value(for: property) ?? 0
+    }
+
+    private static func move(property: ShapeEditableProperty, by delta: Double, in group: inout GraphShapeGroup) {
+        switch property {
+        case .xCoordinate:
+            translateBy(xDelta: delta, yDelta: 0, in: &group)
+        case .yCoordinate:
+            translateBy(xDelta: 0, yDelta: -delta, in: &group)
+        case .width, .height, .spacing, .xOffset, .yOffset:
+            for index in group.children.indices {
+                move(property: property, by: delta, in: &group.children[index])
+            }
+        }
+    }
+
+    private static func move(
+        property: ShapeEditableProperty,
+        by delta: Double,
+        in element: inout GraphShapeGroupElement
+    ) {
+        switch element {
+        case var .group(group):
+            move(property: property, by: delta, in: &group)
+            element = .group(group)
+        case var .shape(shape):
+            guard shape.supportedOperationAxes.contains(where: { $0.editableProperty == property }) else {
+                return
+            }
+
+            shape.move(property: property, by: delta)
+            element = .shape(shape)
+        }
+    }
+
+    private static func translateBy(xDelta: Double, yDelta: Double, in group: inout GraphShapeGroup) {
+        for index in group.children.indices {
+            translateBy(xDelta: xDelta, yDelta: yDelta, in: &group.children[index])
+        }
+    }
+
+    private static func translateBy(xDelta: Double, yDelta: Double, in element: inout GraphShapeGroupElement) {
+        switch element {
+        case var .group(group):
+            translateBy(xDelta: xDelta, yDelta: yDelta, in: &group)
+            element = .group(group)
+        case var .shape(shape):
+            shape.translateBy(xDelta: xDelta, yDelta: yDelta)
+            element = .shape(shape)
+        }
+    }
+}
