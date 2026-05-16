@@ -12,6 +12,30 @@ struct LogicSize {
     var height: Double
 }
 
+struct LogicRect {
+    var minX: Double
+    var minY: Double
+    var maxX: Double
+    var maxY: Double
+
+    var width: Double {
+        maxX - minX
+    }
+
+    var height: Double {
+        maxY - minY
+    }
+
+    func union(_ other: LogicRect) -> LogicRect {
+        LogicRect(
+            minX: min(minX, other.minX),
+            minY: min(minY, other.minY),
+            maxX: max(maxX, other.maxX),
+            maxY: max(maxY, other.maxY)
+        )
+    }
+}
+
 struct LogicColor {
     var red: Double
     var green: Double
@@ -61,6 +85,15 @@ struct DrawnCircle: Identifiable, EditableShape {
         center
     }
 
+    var bounds: LogicRect? {
+        LogicRect(
+            minX: center.xCoordinate - diameter / 2,
+            minY: center.yCoordinate - diameter / 2,
+            maxX: center.xCoordinate + diameter / 2,
+            maxY: center.yCoordinate + diameter / 2
+        )
+    }
+
     var supportedOperationAxes: [OperationAxis] {
         [.shapeSelection, .xCoordinate, .yCoordinate, .width, .height]
     }
@@ -92,6 +125,11 @@ struct DrawnCircle: Identifiable, EditableShape {
             break
         }
     }
+
+    mutating func translateBy(xDelta: Double, yDelta: Double) {
+        center.xCoordinate += xDelta
+        center.yCoordinate += yDelta
+    }
 }
 
 struct DrawnGrid: Identifiable, EditableShape {
@@ -101,6 +139,10 @@ struct DrawnGrid: Identifiable, EditableShape {
 
     var centroid: LogicPoint {
         origin
+    }
+
+    var bounds: LogicRect? {
+        nil
     }
 
     var supportedOperationAxes: [OperationAxis] {
@@ -131,6 +173,11 @@ struct DrawnGrid: Identifiable, EditableShape {
         case .xCoordinate, .yCoordinate, .width, .height:
             break
         }
+    }
+
+    mutating func translateBy(xDelta: Double, yDelta: Double) {
+        origin.xCoordinate += xDelta
+        origin.yCoordinate += yDelta
     }
 }
 
@@ -182,6 +229,15 @@ enum GraphShape: Identifiable {
         }
     }
 
+    var bounds: LogicRect? {
+        switch self {
+        case let .circle(circle):
+            return circle.bounds
+        case let .grid(grid):
+            return grid.bounds
+        }
+    }
+
     var supportedOperationAxes: [OperationAxis] {
         switch self {
         case let .circle(circle):
@@ -207,6 +263,17 @@ enum GraphShape: Identifiable {
             self = .circle(circle)
         case var .grid(grid):
             grid.move(property: property, by: delta)
+            self = .grid(grid)
+        }
+    }
+
+    mutating func translateBy(xDelta: Double, yDelta: Double) {
+        switch self {
+        case var .circle(circle):
+            circle.translateBy(xDelta: xDelta, yDelta: yDelta)
+            self = .circle(circle)
+        case var .grid(grid):
+            grid.translateBy(xDelta: xDelta, yDelta: yDelta)
             self = .grid(grid)
         }
     }

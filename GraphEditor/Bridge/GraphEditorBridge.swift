@@ -135,7 +135,7 @@ final class GraphEditorBridge: ObservableObject {
         in size: CGSize
     ) -> [DrawingPrimitive] {
         var primitives: [DrawingPrimitive] = []
-        let isSelected = shape.id == snapshot.selectedShapeID
+        let isSelected = snapshot.selectedShapeIDs.contains(shape.id)
 
         switch shape {
         case let .circle(circle):

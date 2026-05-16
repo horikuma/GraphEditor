@@ -26,7 +26,7 @@ run_xcodebuild() {
     -scheme GraphEditor \
     -destination "platform=macOS,arch=arm64" \
     -derivedDataPath "${REPO_ROOT}/.build" \
-    "${XCODEBUILD_ARGS[@]}"
+    "${XCODEBUILD_ARGS[@]+"${XCODEBUILD_ARGS[@]}"}"
 }
 
 "${RUFF}" check --fix .
