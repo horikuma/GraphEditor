@@ -9,16 +9,20 @@
 /* Begin PBXBuildFile section */
 		00A0000A0000000000000001 /* GraphEditorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000001 /* GraphEditorApp.swift */; };
 		00A0000A0000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000002 /* ContentView.swift */; };
-		00A0000A0000000000000003 /* GraphEditorContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000004 /* GraphEditorContent.swift */; };
+		00A0000A0000000000000003 /* GraphEditorLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000004 /* GraphEditorLogic.swift */; };
 		00A0000A0000000000000004 /* ShapeEditing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000005 /* ShapeEditing.swift */; };
+		00A0000A0000000000000005 /* GraphShapes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000006 /* GraphShapes.swift */; };
+		00A0000A0000000000000006 /* KeyEventHandlingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000007 /* KeyEventHandlingView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		00A0000B0000000000000001 /* GraphEditorApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphEditorApp.swift; sourceTree = "<group>"; };
-		00A0000B0000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		00A0000B0000000000000003 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		00A0000B0000000000000004 /* GraphEditorContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphEditorContent.swift; sourceTree = "<group>"; };
-		00A0000B0000000000000005 /* ShapeEditing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeEditing.swift; sourceTree = "<group>"; };
+		00A0000B0000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/ContentView.swift; sourceTree = "<group>"; };
+		00A0000B0000000000000003 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Resources/Info.plist; sourceTree = "<group>"; };
+		00A0000B0000000000000004 /* GraphEditorLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/GraphEditorLogic.swift; sourceTree = "<group>"; };
+		00A0000B0000000000000005 /* ShapeEditing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/ShapeEditing.swift; sourceTree = "<group>"; };
+		00A0000B0000000000000006 /* GraphShapes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/GraphShapes.swift; sourceTree = "<group>"; };
+		00A0000B0000000000000007 /* KeyEventHandlingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/KeyEventHandlingView.swift; sourceTree = "<group>"; };
 		00A0000C0000000000000001 /* GraphEditor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GraphEditor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -45,9 +49,11 @@
 			isa = PBXGroup;
 			children = (
 				00A0000B0000000000000001 /* GraphEditorApp.swift */,
-				00A0000B0000000000000004 /* GraphEditorContent.swift */,
+				00A0000B0000000000000004 /* GraphEditorLogic.swift */,
+				00A0000B0000000000000006 /* GraphShapes.swift */,
 				00A0000B0000000000000005 /* ShapeEditing.swift */,
 				00A0000B0000000000000002 /* ContentView.swift */,
+				00A0000B0000000000000007 /* KeyEventHandlingView.swift */,
 				00A0000B0000000000000003 /* Info.plist */,
 			);
 			path = GraphEditor;
@@ -130,8 +136,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				00A0000A0000000000000001 /* GraphEditorApp.swift in Sources */,
-				00A0000A0000000000000003 /* GraphEditorContent.swift in Sources */,
+				00A0000A0000000000000003 /* GraphEditorLogic.swift in Sources */,
+				00A0000A0000000000000005 /* GraphShapes.swift in Sources */,
 				00A0000A0000000000000004 /* ShapeEditing.swift in Sources */,
+				00A0000A0000000000000006 /* KeyEventHandlingView.swift in Sources */,
 				00A0000A0000000000000002 /* ContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -260,7 +268,7 @@
 				DEVELOPMENT_ASSET_PATHS = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = GraphEditor/Info.plist;
+				INFOPLIST_FILE = GraphEditor/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -283,7 +291,7 @@
 				DEVELOPMENT_ASSET_PATHS = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = GraphEditor/Info.plist;
+				INFOPLIST_FILE = GraphEditor/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
