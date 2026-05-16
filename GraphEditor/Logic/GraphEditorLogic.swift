@@ -13,10 +13,19 @@ struct LogicSnapshot {
     let fillCircles: Bool
 }
 
+struct GroupTreeRowInfo: Identifiable {
+    let id: UUID
+    let depth: Int
+    let title: String
+    let detail: String
+    let isGroup: Bool
+    let isSelected: Bool
+    let isSelectable: Bool
+}
+
 private struct InitialGraphGroups {
     let rootGroup: GraphShapeGroup
-    let gridGroupID: GraphShapeGroup.ID
-    let addedShapesGroupID: GraphShapeGroup.ID
+    let initialSelectionID: UUID
 }
 
 final class GraphEditorLogic {
@@ -26,26 +35,37 @@ final class GraphEditorLogic {
     var fillCircles = false
 
     private var rootGroup: GraphShapeGroup
-    private var gridGroupID: GraphShapeGroup.ID
-    private var addedShapesGroupID: GraphShapeGroup.ID
-    private var selectedGroupID: GraphShapeGroup.ID?
+    private var selectedNodeIDs: Set<UUID>
+    private var nextGroupNumber = 1
     private var operationAxis = OperationAxis.shapeSelection
 
     init() {
-        let initialState = Self.makeInitialGroups()
+        let initialState = makeInitialGroups()
         rootGroup = initialState.rootGroup
-        gridGroupID = initialState.gridGroupID
-        addedShapesGroupID = initialState.addedShapesGroupID
-        selectedGroupID = gridGroupID
+        selectedNodeIDs = [initialState.initialSelectionID]
     }
 
     var statusInfo: EditorStatusInfo {
         EditorStatusInfo(
-            objectCountText: "\(rootGroup.shapeCount) objects / \(topLevelGroups.count) groups",
+            objectCountText: "\(rootGroup.shapeCount) objects / \(rootGroup.childGroups.count) groups",
             selectedShapeText: "グループ: \(selectedShapeLabel)",
             operationAxisText: "軸: \(operationAxis.title)",
             operationValueText: "値: \(operationValueText)"
         )
+    }
+
+    var groupTreeRows: [GroupTreeRowInfo] {
+        rows(for: rootGroup, depth: 0)
+    }
+
+    var canGroupSelection: Bool {
+        selectedRootChildIndices.count >= 2
+    }
+
+    var canUngroupSelection: Bool {
+        selectedRootChildIndices.contains { index in
+            rootGroup.children[index].isGroup
+        }
     }
 
     var isClearDisabled: Bool {
@@ -55,22 +75,21 @@ final class GraphEditorLogic {
     var snapshot: LogicSnapshot {
         LogicSnapshot(
             shapes: rootGroup.flattenedShapes,
-            selectedShapeIDs: selectedGroup?.shapeIDs ?? [],
+            selectedShapeIDs: selectedShapeIDs,
             fillCircles: fillCircles
         )
     }
 
     func clear() {
-        let initialState = Self.makeInitialGroups()
+        let initialState = makeInitialGroups()
         rootGroup = initialState.rootGroup
-        gridGroupID = initialState.gridGroupID
-        addedShapesGroupID = initialState.addedShapesGroupID
-        selectedGroupID = gridGroupID
+        selectedNodeIDs = [initialState.initialSelectionID]
+        nextGroupNumber = 1
         operationAxis = .shapeSelection
     }
 
     func appendShape(at location: LogicPoint, in size: LogicSize) {
-        let clampedLocation = Self.clamp(location, in: size)
+        let clampedLocation = clamp(location, in: size)
 
         switch addableShapeKind {
         case .circle:
@@ -92,9 +111,9 @@ final class GraphEditorLogic {
     func handleKeyCommand(_ command: LogicKeyCommand, modifiers: LogicKeyModifiers) -> Bool {
         switch command {
         case .left:
-            selectPreviousAxis()
+            selectAxis(step: -1)
         case .right:
-            selectNextAxis()
+            selectAxis(step: 1)
         case .arrowDown:
             applyLinearOperation(delta: -keyStep(for: modifiers))
         case .arrowUp:
@@ -104,37 +123,64 @@ final class GraphEditorLogic {
         return true
     }
 
-    private var topLevelGroups: [GraphShapeGroup] {
-        rootGroup.childGroups
-    }
-
-    private var selectedGroupIndex: Int? {
-        guard let selectedGroupID else {
-            return nil
+    func toggleTreeSelection(id: UUID) {
+        guard rootGroup.id != id else {
+            return
         }
 
-        return topLevelGroups.firstIndex { $0.id == selectedGroupID }
-    }
-
-    private var selectedGroup: GraphShapeGroup? {
-        guard let selectedGroupID else {
-            return nil
+        if selectedNodeIDs.contains(id) {
+            selectedNodeIDs.remove(id)
+        } else {
+            selectedNodeIDs.insert(id)
         }
 
-        return rootGroup.group(id: selectedGroupID)
+        operationAxis = .shapeSelection
+    }
+
+    func groupSelection() {
+        let indices = selectedRootChildIndices
+        guard indices.count >= 2 else {
+            return
+        }
+
+        let selectedChildren = indices.map { rootGroup.children[$0] }
+        for index in indices.reversed() {
+            rootGroup.children.remove(at: index)
+        }
+
+        let group = GraphShapeGroup(title: "新規グループ\(nextGroupNumber)", children: selectedChildren)
+        nextGroupNumber += 1
+        rootGroup.children.append(.group(group))
+        normalizeRootChildrenOrder()
+        selectedNodeIDs = [group.id]
+        operationAxis = .shapeSelection
+    }
+
+    func ungroupSelection() {
+        let indices = selectedRootChildIndices.filter { rootGroup.children[$0].isGroup }
+        guard !indices.isEmpty else {
+            return
+        }
+
+        let ungroupedShapes = indices.flatMap { index in
+            rootGroup.children[index].flattenedShapes.map(GraphShapeGroupElement.shape)
+        }
+        for index in indices.reversed() {
+            rootGroup.children.remove(at: index)
+        }
+
+        rootGroup.children.append(contentsOf: ungroupedShapes)
+        selectedNodeIDs = Set(ungroupedShapes.flatMap(\.shapeIDs))
+        operationAxis = .shapeSelection
     }
 
     private var operationValueText: String {
         switch operationAxis {
         case .shapeSelection:
-            if let selectedGroupIndex {
-                return "\(selectedGroupIndex + 1) / \(topLevelGroups.count)"
-            } else {
-                return "なし"
-            }
+            return "\(selectedNodeIDs.count) selected"
         case .xCoordinate, .yCoordinate, .width, .height, .spacing, .xOffset, .yOffset:
             guard
-                let selectedGroup,
+                let selectedGroup = editingGroup,
                 let property = operationAxis.editableProperty
             else {
                 return "なし"
@@ -145,7 +191,7 @@ final class GraphEditorLogic {
     }
 
     private var selectedShapeLabel: String {
-        guard let selectedGroup else {
+        guard let selectedGroup = editingGroup else {
             return "なし"
         }
 
@@ -153,23 +199,14 @@ final class GraphEditorLogic {
     }
 
     private func appendShape(_ shape: GraphShape) {
-        let group = GraphShapeGroup.primitiveGroup(for: shape)
-        rootGroup.appendChild(.group(group), toGroup: addedShapesGroupID)
-        selectedGroupID = addedShapesGroupID
+        rootGroup.children.append(.shape(shape))
+        selectedNodeIDs = [shape.id]
         operationAxis = .shapeSelection
     }
 
-    private func selectPreviousAxis() {
-        selectAxis(step: -1)
-    }
-
-    private func selectNextAxis() {
-        selectAxis(step: 1)
-    }
-
     private func applyLinearOperation(delta: Double) {
-        guard !topLevelGroups.isEmpty else {
-            selectedGroupID = nil
+        guard !rootGroup.children.isEmpty else {
+            selectedNodeIDs.removeAll()
             return
         }
 
@@ -181,24 +218,23 @@ final class GraphEditorLogic {
         }
 
         guard
-            let selectedGroupID,
-            let selectedGroup,
+            let selectedGroup = editingGroup,
             let property = operationAxis.editableProperty,
             GraphShapeGroupEditing.supportedOperationAxes(for: selectedGroup).contains(operationAxis)
         else {
             return
         }
 
-        GraphShapeGroupEditing.moveGroup(id: selectedGroupID, property: property, by: delta, in: &rootGroup)
+        GraphShapeGroupEditing.moveNodes(ids: selectedNodeIDs, property: property, by: delta, in: &rootGroup)
     }
 
     private func ensureSelection() {
-        if selectedGroupID == nil || selectedGroupIndex == nil {
-            selectedGroupID = topLevelGroups.first?.id
+        if selectedNodeIDs.isEmpty || selectedRootChildIndices.isEmpty {
+            selectedNodeIDs = rootGroup.children.first.map { [$0.id] } ?? []
         }
 
         guard
-            let selectedGroup,
+            let selectedGroup = editingGroup,
             GraphShapeGroupEditing.supportedOperationAxes(for: selectedGroup).contains(operationAxis)
         else {
             operationAxis = .shapeSelection
@@ -209,7 +245,7 @@ final class GraphEditorLogic {
     private func selectAxis(step: Int) {
         ensureSelection()
 
-        let axes = selectedGroup.map(GraphShapeGroupEditing.supportedOperationAxes) ?? [.shapeSelection]
+        let axes = editingGroup.map(GraphShapeGroupEditing.supportedOperationAxes) ?? [.shapeSelection]
         guard let currentIndex = axes.firstIndex(of: operationAxis) else {
             operationAxis = .shapeSelection
             return
@@ -220,14 +256,14 @@ final class GraphEditorLogic {
     }
 
     private func moveSelection(by delta: Int) {
-        guard !topLevelGroups.isEmpty else {
-            selectedGroupID = nil
+        guard !rootGroup.children.isEmpty else {
+            selectedNodeIDs.removeAll()
             return
         }
 
-        let currentIndex = selectedGroupIndex ?? 0
-        let nextIndex = (currentIndex + delta + topLevelGroups.count) % topLevelGroups.count
-        selectedGroupID = topLevelGroups[nextIndex].id
+        let currentIndex = selectedRootChildIndices.first ?? 0
+        let nextIndex = (currentIndex + delta + rootGroup.children.count) % rootGroup.children.count
+        selectedNodeIDs = [rootGroup.children[nextIndex].id]
         operationAxis = .shapeSelection
     }
 
@@ -235,29 +271,82 @@ final class GraphEditorLogic {
         modifiers.isShiftPressed ? 10 : 1
     }
 
-    private static func clamp(_ point: LogicPoint, in size: LogicSize) -> LogicPoint {
-        LogicPoint(
-            xCoordinate: min(max(point.xCoordinate, 0), size.width),
-            yCoordinate: min(max(point.yCoordinate, 0), size.height)
-        )
+    private func normalizeRootChildrenOrder() {
+        rootGroup.children = rootGroup.children.filter(\.isGroup) + rootGroup.children.filter { !$0.isGroup }
     }
 
-    private static func makeInitialGroups() -> InitialGraphGroups {
-        let grid = GraphShape.grid(DrawnGrid(origin: .zero, spacing: 24))
-        let gridGroup = GraphShapeGroup(title: "初期グリッド", children: [.group(.primitiveGroup(for: grid))])
-        let addedShapesGroup = GraphShapeGroup(title: "追加図形", children: [])
-        let rootGroup = GraphShapeGroup(
-            title: "ルート",
-            children: [
-                .group(gridGroup),
-                .group(addedShapesGroup)
+    private var selectedRootChildIndices: [Int] {
+        rootGroup.children.indices.filter { selectedNodeIDs.contains(rootGroup.children[$0].id) }
+    }
+
+    private var selectedShapeIDs: Set<GraphShape.ID> {
+        Set(selectedRootChildIndices.flatMap { rootGroup.children[$0].shapeIDs })
+    }
+
+    private var editingGroup: GraphShapeGroup? {
+        let selectedElements = selectedRootChildIndices.map { rootGroup.children[$0] }
+        guard !selectedElements.isEmpty else {
+            return nil
+        }
+
+        if selectedElements.count == 1, case let .group(group) = selectedElements[0] {
+            return group
+        }
+
+        return GraphShapeGroup(title: "選択", children: selectedElements)
+    }
+
+    private func rows(for group: GraphShapeGroup, depth: Int) -> [GroupTreeRowInfo] {
+        let row = GroupTreeRowInfo(
+            id: group.id,
+            depth: depth,
+            title: group.title,
+            detail: "\(group.shapeCount) objects",
+            isGroup: true,
+            isSelected: selectedNodeIDs.contains(group.id),
+            isSelectable: depth == 1
+        )
+
+        return [row] + group.children.flatMap { rows(for: $0, depth: depth + 1) }
+    }
+
+    private func rows(for element: GraphShapeGroupElement, depth: Int) -> [GroupTreeRowInfo] {
+        switch element {
+        case let .group(group):
+            return rows(for: group, depth: depth)
+        case let .shape(shape):
+            return [
+                GroupTreeRowInfo(
+                    id: shape.id,
+                    depth: depth,
+                    title: shape.title,
+                    detail: "primitive",
+                    isGroup: false,
+                    isSelected: selectedNodeIDs.contains(shape.id),
+                    isSelectable: depth == 1
+                )
             ]
-        )
-
-        return InitialGraphGroups(
-            rootGroup: rootGroup,
-            gridGroupID: gridGroup.id,
-            addedShapesGroupID: addedShapesGroup.id
-        )
+        }
     }
+
+}
+
+private func clamp(_ point: LogicPoint, in size: LogicSize) -> LogicPoint {
+    LogicPoint(
+        xCoordinate: min(max(point.xCoordinate, 0), size.width),
+        yCoordinate: min(max(point.yCoordinate, 0), size.height)
+    )
+}
+
+private func makeInitialGroups() -> InitialGraphGroups {
+    let grid = GraphShape.grid(DrawnGrid(origin: .zero, spacing: 24))
+    let rootGroup = GraphShapeGroup(
+        title: "ルート",
+        children: [.shape(grid)]
+    )
+
+    return InitialGraphGroups(
+        rootGroup: rootGroup,
+        initialSelectionID: grid.id
+    )
 }

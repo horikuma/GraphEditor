@@ -8,9 +8,13 @@ struct ContentView: View {
         VStack(spacing: 0) {
             toolbar
             Divider()
-            drawingSurface
+            HStack(spacing: 0) {
+                drawingSurface
+                Divider()
+                groupTreePanel
+            }
         }
-        .frame(minWidth: 760, minHeight: 520)
+        .frame(minWidth: 900, minHeight: 520)
         .background(Color(nsColor: .windowBackgroundColor))
     }
 
@@ -92,6 +96,92 @@ struct ContentView: View {
                     }
             )
         }
+    }
+
+    private var groupTreePanel: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("Group Tree")
+                .font(.system(.caption, design: .monospaced).weight(.semibold))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+
+            Divider()
+
+            HStack(spacing: 8) {
+                Button {
+                    bridge.groupSelection()
+                } label: {
+                    Label("Group", systemImage: "folder.badge.plus")
+                }
+                .disabled(!bridge.canGroupSelection)
+
+                Button {
+                    bridge.ungroupSelection()
+                } label: {
+                    Label("Ungroup", systemImage: "folder.badge.minus")
+                }
+                .disabled(!bridge.canUngroupSelection)
+            }
+            .labelStyle(.iconOnly)
+            .buttonStyle(.borderless)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+
+            Divider()
+
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 2) {
+                    ForEach(bridge.groupTreeRows) { row in
+                        groupTreeRow(row)
+                    }
+                }
+                .padding(.vertical, 8)
+            }
+        }
+        .frame(width: 240)
+        .background(Color(nsColor: .controlBackgroundColor))
+    }
+
+    private func groupTreeRow(_ row: GroupTreeRowInfo) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: row.isGroup ? "folder" : "circle.fill")
+                .font(.system(size: 11))
+                .foregroundStyle(row.isGroup ? Color.accentColor : Color.secondary)
+                .frame(width: 16)
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(row.title)
+                    .font(.system(.caption, design: .monospaced))
+                    .lineLimit(1)
+                Text(row.detail)
+                    .font(.system(size: 10, design: .monospaced))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(.leading, CGFloat(row.depth * 14) + 8)
+        .padding(.trailing, 8)
+        .padding(.vertical, 4)
+        .foregroundStyle(row.isSelected ? Color.accentColor : Color.primary)
+        .background {
+            if row.isSelected {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color.accentColor.opacity(0.12))
+            }
+        }
+        .padding(.horizontal, 6)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            guard row.isSelectable else {
+                return
+            }
+
+            bridge.toggleTreeSelection(id: row.id)
+        }
+        .opacity(row.isSelectable ? 1 : 0.72)
     }
 
     private func draw(_ primitive: DrawingPrimitive, in context: inout GraphicsContext, size: CGSize) {

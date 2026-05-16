@@ -41,6 +41,17 @@ enum GraphShapeGroupEditing {
         }
     }
 
+    static func moveNodes(
+        ids: Set<UUID>,
+        property: ShapeEditableProperty,
+        by delta: Double,
+        in rootGroup: inout GraphShapeGroup
+    ) {
+        for index in rootGroup.children.indices where ids.contains(rootGroup.children[index].id) {
+            move(property: property, by: delta, in: &rootGroup.children[index])
+        }
+    }
+
     private static func firstShapeValue(for property: ShapeEditableProperty, in group: GraphShapeGroup) -> Double {
         group.flattenedShapes.first { shape in
             shape.supportedOperationAxes.contains {

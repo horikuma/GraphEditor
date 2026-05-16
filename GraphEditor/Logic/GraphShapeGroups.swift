@@ -3,6 +3,40 @@ import Foundation
 indirect enum GraphShapeGroupElement {
     case group(GraphShapeGroup)
     case shape(GraphShape)
+
+    var id: UUID {
+        switch self {
+        case let .group(group):
+            return group.id
+        case let .shape(shape):
+            return shape.id
+        }
+    }
+
+    var title: String {
+        switch self {
+        case let .group(group):
+            return group.title
+        case let .shape(shape):
+            return shape.title
+        }
+    }
+
+    var isGroup: Bool {
+        if case .group = self {
+            return true
+        }
+
+        return false
+    }
+
+    var shapeIDs: Set<GraphShape.ID> {
+        Set(flattenedShapes.map(\.id))
+    }
+
+    var shapeCount: Int {
+        flattenedShapes.count
+    }
 }
 
 struct GraphShapeGroup: Identifiable {

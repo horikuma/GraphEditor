@@ -87,6 +87,18 @@ final class GraphEditorBridge: ObservableObject {
         logic.statusInfo
     }
 
+    var groupTreeRows: [GroupTreeRowInfo] {
+        logic.groupTreeRows
+    }
+
+    var canGroupSelection: Bool {
+        logic.canGroupSelection
+    }
+
+    var canUngroupSelection: Bool {
+        logic.canUngroupSelection
+    }
+
     var isClearDisabled: Bool {
         logic.isClearDisabled
     }
@@ -98,6 +110,21 @@ final class GraphEditorBridge: ObservableObject {
 
     func appendShape(at location: CGPoint, in size: CGSize) {
         logic.appendShape(at: Self.logicPoint(from: location), in: Self.logicSize(from: size))
+        objectWillChange.send()
+    }
+
+    func toggleTreeSelection(id: UUID) {
+        logic.toggleTreeSelection(id: id)
+        objectWillChange.send()
+    }
+
+    func groupSelection() {
+        logic.groupSelection()
+        objectWillChange.send()
+    }
+
+    func ungroupSelection() {
+        logic.ungroupSelection()
         objectWillChange.send()
     }
 
