@@ -52,6 +52,14 @@ enum ShapeGroupEditing {
         }
     }
 
+    static func rotateNodes(ids: Set<UUID>, degrees: Double, in rootGroup: inout ShapeGroup) {
+        let selectedElements = rootGroup.children.filter { ids.contains($0.id) }
+        let pivot = ShapeGroup(title: "選択", children: selectedElements).rotationCentroid
+        for index in rootGroup.children.indices where ids.contains(rootGroup.children[index].id) {
+            rotateBy(degrees: degrees, around: pivot, in: &rootGroup.children[index])
+        }
+    }
+
     private static func firstShapeValue(for property: ShapeEditableProperty, in group: ShapeGroup) -> Double {
         group.flattenedShapes.first { shape in
             shape.supportedOperationAxes.contains {
@@ -67,7 +75,7 @@ enum ShapeGroupEditing {
         case .yCoordinate:
             translateBy(xDelta: 0, yDelta: -delta, in: &group)
         case .rotation:
-            rotateBy(degrees: delta, around: group.centroid, in: &group)
+            rotateBy(degrees: delta, around: group.rotationCentroid, in: &group)
         case .width, .height, .spacing, .xOffset, .yOffset:
             for index in group.children.indices {
                 move(property: property, by: delta, in: &group.children[index])

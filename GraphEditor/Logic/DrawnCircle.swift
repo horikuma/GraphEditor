@@ -1,6 +1,6 @@
 import Foundation
 
-struct DrawnCircle: Identifiable, EditableShape {
+struct DrawnCircle: Identifiable, EditableShape, RotatableShape {
     let id = UUID()
     var center: LogicPoint
     var diameter: Double
@@ -18,6 +18,11 @@ struct DrawnCircle: Identifiable, EditableShape {
             maxX: center.xCoordinate + diameter / 2,
             maxY: center.yCoordinate + diameter / 2
         )
+    }
+
+    var rotationArea: Double {
+        let radius = diameter / 2
+        return .pi * radius * radius
     }
 
     var supportedOperationAxes: [OperationAxis] {

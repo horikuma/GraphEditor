@@ -10,6 +10,7 @@ struct EditorStatus {
 struct LogicSnapshot {
     let shapes: [DrawingShape]
     let selectedShapeIDs: Set<DrawingShape.ID>
+    let selectedGroupCentroid: LogicPoint?
 }
 
 struct GroupTreeRow: Identifiable {
@@ -77,7 +78,8 @@ final class GraphEditorStore {
     var snapshot: LogicSnapshot {
         LogicSnapshot(
             shapes: rootGroup.flattenedShapes,
-            selectedShapeIDs: selectedShapeIDs
+            selectedShapeIDs: selectedShapeIDs,
+            selectedGroupCentroid: selectedGroupCentroid
         )
     }
 
@@ -207,7 +209,11 @@ final class GraphEditorStore {
             return
         }
 
-        ShapeGroupEditing.moveNodes(ids: selectedNodeIDs, property: property, by: delta, in: &rootGroup)
+        if property == .rotation {
+            ShapeGroupEditing.rotateNodes(ids: selectedNodeIDs, degrees: delta, in: &rootGroup)
+        } else {
+            ShapeGroupEditing.moveNodes(ids: selectedNodeIDs, property: property, by: delta, in: &rootGroup)
+        }
     }
 
     private func ensureSelection() {
@@ -261,6 +267,14 @@ final class GraphEditorStore {
 
     private var selectedShapeIDs: Set<DrawingShape.ID> {
         Set(selectedRootChildIndices.flatMap { rootGroup.children[$0].shapeIDs })
+    }
+
+    private var selectedGroupCentroid: LogicPoint? {
+        guard let group = editingGroup, group.shapeCount > 1 else {
+            return nil
+        }
+
+        return group.rotationCentroid
     }
 
     var editingGroup: ShapeGroup? {

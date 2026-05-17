@@ -75,3 +75,9 @@ protocol EditableShape {
     func value(for property: ShapeEditableProperty) -> Double
     mutating func move(property: ShapeEditableProperty, by delta: Double)
 }
+
+protocol RotatableShape {
+    var rotationArea: Double { get }
+
+    mutating func rotateBy(degrees: Double, around pivot: LogicPoint)
+}

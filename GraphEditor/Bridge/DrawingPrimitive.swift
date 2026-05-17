@@ -45,5 +45,10 @@ struct GridPrimitive {
 struct CentroidCrossPrimitive {
     let id: UUID
     let point: CGPoint
-    let isSelected: Bool
+    let role: CentroidCrossRole
+}
+
+enum CentroidCrossRole {
+    case shape
+    case group
 }

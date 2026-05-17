@@ -1,6 +1,6 @@
 import Foundation
 
-struct DrawnRectangle: Identifiable, EditableShape {
+struct DrawnRectangle: Identifiable, EditableShape, RotatableShape {
     let id = UUID()
     var center: LogicPoint
     var size: LogicSize
@@ -18,6 +18,10 @@ struct DrawnRectangle: Identifiable, EditableShape {
             maxX: center.xCoordinate + size.width / 2,
             maxY: center.yCoordinate + size.height / 2
         )
+    }
+
+    var rotationArea: Double {
+        size.width * size.height
     }
 
     var supportedOperationAxes: [OperationAxis] {

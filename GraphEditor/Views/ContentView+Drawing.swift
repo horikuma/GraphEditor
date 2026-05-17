@@ -70,14 +70,16 @@ extension ContentView {
 
     private func drawCentroidCross(_ cross: CentroidCrossPrimitive, in context: inout GraphicsContext) {
         var path = Path()
-        let length: CGFloat = cross.isSelected ? 16 : 12
+        let length: CGFloat = cross.role == .group ? 24 : 16
+        let color = cross.role == .group ? Color.accentColor : Color.gray
+        let opacity = cross.role == .group ? 0.85 : 0.55
+        let lineWidth: CGFloat = cross.role == .group ? 1.25 : 0.75
 
         path.move(to: CGPoint(x: cross.point.x - length / 2, y: cross.point.y))
         path.addLine(to: CGPoint(x: cross.point.x + length / 2, y: cross.point.y))
         path.move(to: CGPoint(x: cross.point.x, y: cross.point.y - length / 2))
         path.addLine(to: CGPoint(x: cross.point.x, y: cross.point.y + length / 2))
 
-        let opacity = cross.isSelected ? 0.55 : 0.35
-        context.stroke(path, with: .color(Color.gray.opacity(opacity)), lineWidth: 0.75)
+        context.stroke(path, with: .color(color.opacity(opacity)), lineWidth: lineWidth)
     }
 }

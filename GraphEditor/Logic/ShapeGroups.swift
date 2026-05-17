@@ -88,6 +88,27 @@ struct ShapeGroup: Identifiable {
         )
     }
 
+    var rotationCentroid: LogicPoint {
+        let weightedValues = flattenedShapes.map { shape in
+            (centroid: shape.centroid, area: shape.rotationArea)
+        }.filter { $0.area > 0 }
+        guard !weightedValues.isEmpty else {
+            return centroid
+        }
+
+        let totalArea = weightedValues.reduce(0) { $0 + $1.area }
+        let weightedSum = weightedValues.reduce(LogicPoint.zero) { partialResult, value in
+            LogicPoint(
+                xCoordinate: partialResult.xCoordinate + value.centroid.xCoordinate * value.area,
+                yCoordinate: partialResult.yCoordinate + value.centroid.yCoordinate * value.area
+            )
+        }
+        return LogicPoint(
+            xCoordinate: weightedSum.xCoordinate / totalArea,
+            yCoordinate: weightedSum.yCoordinate / totalArea
+        )
+    }
+
     var bounds: LogicRect? {
         flattenedShapes.compactMap(\.bounds).reduce(nil) { partialResult, bounds in
             partialResult?.union(bounds) ?? bounds

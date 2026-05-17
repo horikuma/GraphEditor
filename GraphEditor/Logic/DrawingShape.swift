@@ -35,15 +35,6 @@ enum DrawingShape: Identifiable {
         return false
     }
 
-    var showsCentroidCrossByDefault: Bool {
-        switch self {
-        case .circle, .rectangle:
-            return true
-        case .grid:
-            return false
-        }
-    }
-
     var centroid: LogicPoint {
         switch self {
         case let .circle(circle):
@@ -52,6 +43,17 @@ enum DrawingShape: Identifiable {
             return rectangle.centroid
         case let .grid(grid):
             return grid.centroid
+        }
+    }
+
+    var rotationArea: Double {
+        switch self {
+        case let .circle(circle):
+            return circle.rotationArea
+        case let .rectangle(rectangle):
+            return rectangle.rotationArea
+        case .grid:
+            return 0
         }
     }
 

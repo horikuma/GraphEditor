@@ -117,7 +117,7 @@ final class GraphEditorBridge: ObservableObject {
         let nonGrids = snapshot.shapes.filter { !$0.isGrid }.flatMap {
             drawingPrimitives(for: $0, snapshot: snapshot, in: size)
         }
-        return grids + nonGrids
+        return grids + nonGrids + groupCentroidPrimitives(snapshot: snapshot)
     }
 
     private func drawingPrimitives(
@@ -130,19 +130,35 @@ final class GraphEditorBridge: ObservableObject {
             drawingPrimitive(for: shape, isSelected: isSelected, in: size)
         ]
 
-        if shape.showsCentroidCrossByDefault || isSelected {
+        if isSelected {
             primitives.append(
                 .centroidCross(
                     CentroidCrossPrimitive(
                         id: UUID(),
                         point: Self.point(from: shape.centroid),
-                        isSelected: isSelected
+                        role: .shape
                     )
                 )
             )
         }
 
         return primitives
+    }
+
+    private func groupCentroidPrimitives(snapshot: LogicSnapshot) -> [DrawingPrimitive] {
+        guard let centroid = snapshot.selectedGroupCentroid else {
+            return []
+        }
+
+        return [
+            .centroidCross(
+                CentroidCrossPrimitive(
+                    id: UUID(),
+                    point: Self.point(from: centroid),
+                    role: .group
+                )
+            )
+        ]
     }
 
     private func drawingPrimitive(
