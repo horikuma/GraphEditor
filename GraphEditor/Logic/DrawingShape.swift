@@ -115,4 +115,17 @@ enum DrawingShape: Identifiable {
             self = .grid(grid)
         }
     }
+
+    mutating func rotateBy(degrees: Double, around pivot: LogicPoint) {
+        switch self {
+        case var .circle(circle):
+            circle.rotateBy(degrees: degrees, around: pivot)
+            self = .circle(circle)
+        case var .rectangle(rectangle):
+            rectangle.rotateBy(degrees: degrees, around: pivot)
+            self = .rectangle(rectangle)
+        case .grid:
+            break
+        }
+    }
 }

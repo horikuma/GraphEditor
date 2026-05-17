@@ -4,6 +4,7 @@ struct DrawnRectangle: Identifiable, EditableShape {
     let id = UUID()
     var center: LogicPoint
     var size: LogicSize
+    var rotationDegrees = 0.0
     let color: LogicColor
 
     var centroid: LogicPoint {
@@ -20,7 +21,7 @@ struct DrawnRectangle: Identifiable, EditableShape {
     }
 
     var supportedOperationAxes: [OperationAxis] {
-        [.xCoordinate, .yCoordinate, .width, .height]
+        [.xCoordinate, .yCoordinate, .width, .height, .rotation]
     }
 
     func value(for property: ShapeEditableProperty) -> Double {
@@ -33,6 +34,8 @@ struct DrawnRectangle: Identifiable, EditableShape {
             return size.width
         case .height:
             return size.height
+        case .rotation:
+            return rotationDegrees
         case .spacing, .xOffset, .yOffset:
             return 0
         }
@@ -48,6 +51,8 @@ struct DrawnRectangle: Identifiable, EditableShape {
             size.width = max(4, size.width + delta)
         case .height:
             size.height = max(4, size.height + delta)
+        case .rotation:
+            rotationDegrees += delta
         case .spacing, .xOffset, .yOffset:
             break
         }
@@ -56,5 +61,10 @@ struct DrawnRectangle: Identifiable, EditableShape {
     mutating func translateBy(xDelta: Double, yDelta: Double) {
         center.xCoordinate += xDelta
         center.yCoordinate += yDelta
+    }
+
+    mutating func rotateBy(degrees: Double, around pivot: LogicPoint) {
+        center = center.rotated(degrees: degrees, around: pivot)
+        rotationDegrees += degrees
     }
 }

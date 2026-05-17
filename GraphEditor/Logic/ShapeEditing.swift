@@ -1,6 +1,6 @@
 import Foundation
 
-enum OperationAxis: CaseIterable {
+enum OperationAxis: String, CaseIterable, Identifiable {
     case xCoordinate
     case yCoordinate
     case width
@@ -8,6 +8,11 @@ enum OperationAxis: CaseIterable {
     case spacing
     case xOffset
     case yOffset
+    case rotation
+
+    var id: Self {
+        self
+    }
 
     var title: String {
         switch self {
@@ -25,6 +30,8 @@ enum OperationAxis: CaseIterable {
             return "X軸移動"
         case .yOffset:
             return "Y軸移動"
+        case .rotation:
+            return "回転"
         }
     }
 
@@ -44,6 +51,8 @@ enum OperationAxis: CaseIterable {
             return .xOffset
         case .yOffset:
             return .yOffset
+        case .rotation:
+            return .rotation
         }
     }
 }
@@ -56,6 +65,7 @@ enum ShapeEditableProperty {
     case spacing
     case xOffset
     case yOffset
+    case rotation
 }
 
 protocol EditableShape {

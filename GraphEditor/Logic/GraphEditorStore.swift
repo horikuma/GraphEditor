@@ -34,7 +34,7 @@ final class GraphEditorStore {
     private var rootGroup: ShapeGroup
     private var selectedNodeIDs: Set<UUID>
     private var nextGroupNumber = 1
-    private var operationAxis = OperationAxis.xCoordinate
+    var operationAxis = OperationAxis.xCoordinate
 
     init() {
         let initialState = makeInitialShapeTree()
@@ -170,17 +170,11 @@ final class GraphEditorStore {
     }
 
     private var operationValueText: String {
-        switch operationAxis {
-        case .xCoordinate, .yCoordinate, .width, .height, .spacing, .xOffset, .yOffset:
-            guard
-                let selectedGroup = editingGroup,
-                let property = operationAxis.editableProperty
-            else {
-                return "なし"
-            }
-
-            return "\(Int(ShapeGroupEditing.value(for: property, in: selectedGroup)))"
+        guard let selectedGroup = editingGroup else {
+            return "なし"
         }
+
+        return operationValueText(for: operationAxis, in: selectedGroup)
     }
 
     private var selectedShapeLabel: String {
@@ -269,7 +263,7 @@ final class GraphEditorStore {
         Set(selectedRootChildIndices.flatMap { rootGroup.children[$0].shapeIDs })
     }
 
-    private var editingGroup: ShapeGroup? {
+    var editingGroup: ShapeGroup? {
         let selectedElements = selectedRootChildIndices.map { rootGroup.children[$0] }
         guard !selectedElements.isEmpty else {
             return nil

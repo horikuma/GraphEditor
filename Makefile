@@ -10,6 +10,7 @@ launch:
 
 inspect:
 	@case "$(word 2,$(MAKECMDGOALS))" in \
+		"") ./scripts/inspect/collect.sh && ./scripts/inspect/views.sh;; \
 		collect) ./scripts/inspect/collect.sh;; \
 		show) ./scripts/inspect/views.sh;; \
 		*) echo "Usage: make inspect collect|show" >&2; exit 2;; \

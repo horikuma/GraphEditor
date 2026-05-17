@@ -11,7 +11,7 @@ enum ShapeGroupEditing {
             return [.spacing, .xOffset, .yOffset]
         }
 
-        return [.xCoordinate, .yCoordinate, .width, .height]
+        return [.xCoordinate, .yCoordinate, .width, .height, .rotation]
     }
 
     static func value(for property: ShapeEditableProperty, in group: ShapeGroup) -> Double {
@@ -24,7 +24,7 @@ enum ShapeGroupEditing {
             return group.bounds?.width ?? firstShapeValue(for: property, in: group)
         case .height:
             return group.bounds?.height ?? firstShapeValue(for: property, in: group)
-        case .spacing, .xOffset, .yOffset:
+        case .spacing, .xOffset, .yOffset, .rotation:
             return firstShapeValue(for: property, in: group)
         }
     }
@@ -66,6 +66,8 @@ enum ShapeGroupEditing {
             translateBy(xDelta: delta, yDelta: 0, in: &group)
         case .yCoordinate:
             translateBy(xDelta: 0, yDelta: -delta, in: &group)
+        case .rotation:
+            rotateBy(degrees: delta, around: group.centroid, in: &group)
         case .width, .height, .spacing, .xOffset, .yOffset:
             for index in group.children.indices {
                 move(property: property, by: delta, in: &group.children[index])
@@ -105,6 +107,27 @@ enum ShapeGroupEditing {
             element = .group(group)
         case var .shape(shape):
             shape.translateBy(xDelta: xDelta, yDelta: yDelta)
+            element = .shape(shape)
+        }
+    }
+
+    private static func rotateBy(degrees: Double, around pivot: LogicPoint, in group: inout ShapeGroup) {
+        for index in group.children.indices {
+            rotateBy(degrees: degrees, around: pivot, in: &group.children[index])
+        }
+    }
+
+    private static func rotateBy(
+        degrees: Double,
+        around pivot: LogicPoint,
+        in element: inout ShapeGroupElement
+    ) {
+        switch element {
+        case var .group(group):
+            rotateBy(degrees: degrees, around: pivot, in: &group)
+            element = .group(group)
+        case var .shape(shape):
+            shape.rotateBy(degrees: degrees, around: pivot)
             element = .shape(shape)
         }
     }

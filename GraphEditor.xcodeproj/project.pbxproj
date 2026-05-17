@@ -30,6 +30,10 @@
 		00A0000A0000000000000016 /* DrawnGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000016 /* DrawnGrid.swift */; };
 		00A0000A0000000000000017 /* DrawingPrimitive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000017 /* DrawingPrimitive.swift */; };
 		00A0000A0000000000000018 /* LogicKeyModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000018 /* LogicKeyModifiers.swift */; };
+		00A0000A0000000000000019 /* OperationAxisRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000019 /* OperationAxisRow.swift */; };
+		00A0000A000000000000001A /* GraphEditorStore+OperationAxes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B000000000000001A /* GraphEditorStore+OperationAxes.swift */; };
+		00A0000A000000000000001B /* ContentView+InspectorPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B000000000000001B /* ContentView+InspectorPanel.swift */; };
+		00A0000A000000000000001C /* LogicPoint+Rotation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B000000000000001C /* LogicPoint+Rotation.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -57,6 +61,10 @@
 		00A0000B0000000000000016 /* DrawnGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/DrawnGrid.swift; sourceTree = "<group>"; };
 		00A0000B0000000000000017 /* DrawingPrimitive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bridge/DrawingPrimitive.swift; sourceTree = "<group>"; };
 		00A0000B0000000000000018 /* LogicKeyModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/LogicKeyModifiers.swift; sourceTree = "<group>"; };
+		00A0000B0000000000000019 /* OperationAxisRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/OperationAxisRow.swift; sourceTree = "<group>"; };
+		00A0000B000000000000001A /* GraphEditorStore+OperationAxes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Logic/GraphEditorStore+OperationAxes.swift"; sourceTree = "<group>"; };
+		00A0000B000000000000001B /* ContentView+InspectorPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/ContentView+InspectorPanel.swift"; sourceTree = "<group>"; };
+		00A0000B000000000000001C /* LogicPoint+Rotation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Logic/LogicPoint+Rotation.swift"; sourceTree = "<group>"; };
 		00A0000C0000000000000001 /* GraphEditor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GraphEditor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -84,7 +92,9 @@
 			children = (
 				00A0000B0000000000000001 /* GraphEditorApp.swift */,
 				00A0000B0000000000000004 /* GraphEditorStore.swift */,
+				00A0000B000000000000001A /* GraphEditorStore+OperationAxes.swift */,
 				00A0000B000000000000000E /* LogicPoint.swift */,
+				00A0000B000000000000001C /* LogicPoint+Rotation.swift */,
 				00A0000B000000000000000F /* LogicSize.swift */,
 				00A0000B0000000000000010 /* LogicRect.swift */,
 				00A0000B0000000000000011 /* LogicColor.swift */,
@@ -99,10 +109,12 @@
 				00A0000B000000000000000D /* ShapeGroup+HitTesting.swift */,
 				00A0000B000000000000000A /* ShapeGroupEditing.swift */,
 				00A0000B0000000000000005 /* ShapeEditing.swift */,
+				00A0000B0000000000000019 /* OperationAxisRow.swift */,
 				00A0000B0000000000000017 /* DrawingPrimitive.swift */,
 				00A0000B0000000000000008 /* GraphEditorBridge.swift */,
 				00A0000B0000000000000002 /* ContentView.swift */,
 				00A0000B000000000000000B /* ContentView+Drawing.swift */,
+				00A0000B000000000000001B /* ContentView+InspectorPanel.swift */,
 				00A0000B0000000000000007 /* KeyEventHandlingView.swift */,
 				00A0000B000000000000000C /* TreeReturnKeyHandlingView.swift */,
 				00A0000B0000000000000003 /* Info.plist */,
@@ -188,7 +200,9 @@
 			files = (
 				00A0000A0000000000000001 /* GraphEditorApp.swift in Sources */,
 				00A0000A0000000000000003 /* GraphEditorStore.swift in Sources */,
+				00A0000A000000000000001A /* GraphEditorStore+OperationAxes.swift in Sources */,
 				00A0000A000000000000000E /* LogicPoint.swift in Sources */,
+				00A0000A000000000000001C /* LogicPoint+Rotation.swift in Sources */,
 				00A0000A000000000000000F /* LogicSize.swift in Sources */,
 				00A0000A0000000000000010 /* LogicRect.swift in Sources */,
 				00A0000A0000000000000011 /* LogicColor.swift in Sources */,
@@ -203,11 +217,13 @@
 				00A0000A000000000000000D /* ShapeGroup+HitTesting.swift in Sources */,
 				00A0000A0000000000000009 /* ShapeGroupEditing.swift in Sources */,
 				00A0000A0000000000000004 /* ShapeEditing.swift in Sources */,
+				00A0000A0000000000000019 /* OperationAxisRow.swift in Sources */,
 				00A0000A0000000000000017 /* DrawingPrimitive.swift in Sources */,
 				00A0000A0000000000000007 /* GraphEditorBridge.swift in Sources */,
 				00A0000A0000000000000006 /* KeyEventHandlingView.swift in Sources */,
 				00A0000A0000000000000002 /* ContentView.swift in Sources */,
 				00A0000A000000000000000B /* ContentView+Drawing.swift in Sources */,
+				00A0000A000000000000001B /* ContentView+InspectorPanel.swift in Sources */,
 				00A0000A000000000000000C /* TreeReturnKeyHandlingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

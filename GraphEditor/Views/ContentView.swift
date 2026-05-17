@@ -2,26 +2,14 @@ import AppKit
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var bridge = GraphEditorBridge()
-    @State private var graphFocusRequest = 0
-    @State private var graphZoomScale = 1.0
-    @State private var graphGestureZoomScale = 1.0
-    @State private var focusedPane = FocusedPane.graph
+    @StateObject var bridge = GraphEditorBridge()
+    @State var graphFocusRequest = 0
+    @State var graphZoomScale = 1.0
+    @State var graphGestureZoomScale = 1.0
+    @State var focusedPane = FocusedPane.graph
 
     private var currentGraphZoomScale: Double {
         clampZoomScale(graphZoomScale * graphGestureZoomScale)
-    }
-
-    private var treeSelection: Binding<Set<UUID>> {
-        Binding(
-            get: {
-                bridge.selectedTreeNodeIDs
-            },
-            set: { newValue in
-                focusedPane = .tree
-                bridge.selectedTreeNodeIDs = newValue
-            }
-        )
     }
 
     var body: some View {
@@ -137,99 +125,6 @@ struct ContentView: View {
         }
     }
 
-    private var groupTreePanel: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text("Group Tree")
-                .font(.system(.caption, design: .monospaced).weight(.semibold))
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
-
-            Divider()
-
-            HStack(spacing: 8) {
-                Button {
-                    bridge.groupSelection()
-                } label: {
-                    Label("Group", systemImage: "folder.badge.plus")
-                }
-                .disabled(!bridge.canGroupSelection)
-
-                Button {
-                    bridge.ungroupSelection()
-                } label: {
-                    Label("Ungroup", systemImage: "folder.badge.minus")
-                }
-                .disabled(!bridge.canUngroupSelection)
-            }
-            .labelStyle(.iconOnly)
-            .buttonStyle(.borderless)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-
-            Divider()
-
-            List(selection: treeSelection) {
-                ForEach(bridge.groupTreeRows) { row in
-                    groupTreeRow(row)
-                        .tag(row.id)
-                        .selectionDisabled(!row.isSelectable)
-                }
-            }
-            .listStyle(.sidebar)
-            .background(
-                TreeReturnKeyHandlingView {
-                    focusedPane = .graph
-                    graphFocusRequest += 1
-                }
-            )
-            .overlay {
-                focusRing(isFocused: focusedPane == .tree)
-            }
-        }
-        .frame(width: 240)
-        .background(Color(nsColor: .controlBackgroundColor))
-    }
-
-    private func groupTreeRow(_ row: GroupTreeRow) -> some View {
-        HStack(spacing: 6) {
-            Image(systemName: row.isGroup ? "folder" : "circle.fill")
-                .font(.system(size: 11))
-                .foregroundStyle(row.isGroup ? Color.primary : Color.secondary)
-                .frame(width: 16)
-
-            VStack(alignment: .leading, spacing: 1) {
-                Text(row.title)
-                    .font(.system(.caption, design: .monospaced))
-                    .lineLimit(1)
-                Text(row.detail)
-                    .font(.system(size: 10, design: .monospaced))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-
-            Spacer(minLength: 0)
-        }
-        .padding(.leading, CGFloat(row.depth * 14) + 8)
-        .padding(.trailing, 8)
-        .padding(.vertical, 4)
-        .padding(.horizontal, 6)
-        .background {
-            if row.isSelected {
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.accentColor.opacity(focusedPane == .tree ? 0.18 : 0.10))
-            }
-        }
-        .overlay {
-            if row.isSelected, focusedPane != .tree {
-                RoundedRectangle(cornerRadius: 4)
-                    .stroke(Color.accentColor.opacity(0.28), lineWidth: 1)
-                    .padding(.horizontal, 6)
-            }
-        }
-        .opacity(row.isSelectable ? 1 : 0.72)
-    }
-
     private func scaledGraphLocation(_ location: CGPoint) -> CGPoint {
         let zoomScale = currentGraphZoomScale
         return CGPoint(x: location.x / zoomScale, y: location.y / zoomScale)
@@ -242,12 +137,13 @@ struct ContentView: View {
 
 }
 
-private enum FocusedPane {
+enum FocusedPane {
     case graph
     case tree
+    case operationAxis
 }
 
-private func focusRing(isFocused: Bool) -> some View {
+func focusRing(isFocused: Bool) -> some View {
     RoundedRectangle(cornerRadius: 0)
         .stroke(
             isFocused ? Color.accentColor.opacity(0.7) : Color.secondary.opacity(0.18),

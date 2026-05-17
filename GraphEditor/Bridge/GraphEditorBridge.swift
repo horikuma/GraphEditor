@@ -42,6 +42,14 @@ final class GraphEditorBridge: ObservableObject {
         }
     }
 
+    var selectedOperationAxisID: OperationAxis? {
+        store.selectedOperationAxisID
+    }
+
+    var operationAxisRows: [OperationAxisRow] {
+        store.operationAxisRows
+    }
+
     var canGroupSelection: Bool {
         store.canGroupSelection
     }
@@ -66,6 +74,11 @@ final class GraphEditorBridge: ObservableObject {
 
     func selectShape(at location: CGPoint) {
         store.selectShape(at: Self.logicPoint(from: location))
+        objectWillChange.send()
+    }
+
+    func selectOperationAxis(_ axis: OperationAxis) {
+        store.setOperationAxis(axis)
         objectWillChange.send()
     }
 
@@ -152,6 +165,7 @@ final class GraphEditorBridge: ObservableObject {
                 RectanglePrimitive(
                     id: rectangle.id,
                     rect: Self.rect(center: rectangle.center, size: rectangle.size),
+                    rotationDegrees: rectangle.rotationDegrees,
                     color: Self.color(from: rectangle.color),
                     isSelected: isSelected
                 )

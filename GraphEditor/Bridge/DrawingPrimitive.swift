@@ -30,6 +30,7 @@ struct CirclePrimitive {
 struct RectanglePrimitive {
     let id: UUID
     let rect: CGRect
+    let rotationDegrees: Double
     let color: Color
     let isSelected: Bool
 }

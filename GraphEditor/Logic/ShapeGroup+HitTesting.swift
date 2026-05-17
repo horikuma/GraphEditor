@@ -53,9 +53,10 @@ private extension DrawnRectangle {
             return false
         }
 
-        return location.xCoordinate >= bounds.minX
-            && location.xCoordinate <= bounds.maxX
-            && location.yCoordinate >= bounds.minY
-            && location.yCoordinate <= bounds.maxY
+        let unrotatedLocation = location.rotated(degrees: -rotationDegrees, around: center)
+        return unrotatedLocation.xCoordinate >= bounds.minX
+            && unrotatedLocation.xCoordinate <= bounds.maxX
+            && unrotatedLocation.yCoordinate >= bounds.minY
+            && unrotatedLocation.yCoordinate <= bounds.maxY
     }
 }

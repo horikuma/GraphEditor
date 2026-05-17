@@ -33,12 +33,17 @@ extension ContentView {
     private func drawRectangle(_ rectangle: RectanglePrimitive, in context: inout GraphicsContext) {
         let path = Path(rectangle.rect)
         let color = rectangle.color
+        var rotatedContext = context
+        let center = CGPoint(x: rectangle.rect.midX, y: rectangle.rect.midY)
 
-        context.fill(path, with: .color(color.opacity(0.18)))
+        rotatedContext.translateBy(x: center.x, y: center.y)
+        rotatedContext.rotate(by: .degrees(rectangle.rotationDegrees))
+        rotatedContext.translateBy(x: -center.x, y: -center.y)
+        rotatedContext.fill(path, with: .color(color.opacity(0.18)))
 
         if rectangle.isSelected {
             let selectionRect = rectangle.rect.insetBy(dx: -5, dy: -5)
-            context.stroke(
+            rotatedContext.stroke(
                 Path(selectionRect),
                 with: .color(Color.primary.opacity(0.45)),
                 style: StrokeStyle(lineWidth: 1, dash: [5, 4])

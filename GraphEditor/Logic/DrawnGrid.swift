@@ -25,7 +25,7 @@ struct DrawnGrid: Identifiable, EditableShape {
             return origin.xCoordinate
         case .yOffset:
             return origin.yCoordinate
-        case .xCoordinate, .yCoordinate, .width, .height:
+        case .xCoordinate, .yCoordinate, .width, .height, .rotation:
             return 0
         }
     }
@@ -38,7 +38,7 @@ struct DrawnGrid: Identifiable, EditableShape {
             origin.xCoordinate += delta
         case .yOffset:
             origin.yCoordinate -= delta
-        case .xCoordinate, .yCoordinate, .width, .height:
+        case .xCoordinate, .yCoordinate, .width, .height, .rotation:
             break
         }
     }
