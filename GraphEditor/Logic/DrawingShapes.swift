@@ -47,7 +47,7 @@ struct LogicColor {
 
 enum AddableShapeKind: String, CaseIterable, Identifiable {
     case circle
-    case grid
+    case rectangle
 
     var id: Self {
         self
@@ -57,8 +57,8 @@ enum AddableShapeKind: String, CaseIterable, Identifiable {
         switch self {
         case .circle:
             return "円"
-        case .grid:
-            return "グリッド"
+        case .rectangle:
+            return "矩形"
         }
     }
 }
@@ -79,7 +79,6 @@ struct DrawnCircle: Identifiable, EditableShape {
     var center: LogicPoint
     var diameter: Double
     let color: LogicColor
-    let lineWidth: Double
 
     var centroid: LogicPoint {
         center
@@ -95,7 +94,7 @@ struct DrawnCircle: Identifiable, EditableShape {
     }
 
     var supportedOperationAxes: [OperationAxis] {
-        [.shapeSelection, .xCoordinate, .yCoordinate, .width, .height]
+        [.xCoordinate, .yCoordinate, .width, .height]
     }
 
     func value(for property: ShapeEditableProperty) -> Double {
@@ -132,6 +131,65 @@ struct DrawnCircle: Identifiable, EditableShape {
     }
 }
 
+struct DrawnRectangle: Identifiable, EditableShape {
+    let id = UUID()
+    var center: LogicPoint
+    var size: LogicSize
+    let color: LogicColor
+
+    var centroid: LogicPoint {
+        center
+    }
+
+    var bounds: LogicRect? {
+        LogicRect(
+            minX: center.xCoordinate - size.width / 2,
+            minY: center.yCoordinate - size.height / 2,
+            maxX: center.xCoordinate + size.width / 2,
+            maxY: center.yCoordinate + size.height / 2
+        )
+    }
+
+    var supportedOperationAxes: [OperationAxis] {
+        [.xCoordinate, .yCoordinate, .width, .height]
+    }
+
+    func value(for property: ShapeEditableProperty) -> Double {
+        switch property {
+        case .xCoordinate:
+            return center.xCoordinate
+        case .yCoordinate:
+            return center.yCoordinate
+        case .width:
+            return size.width
+        case .height:
+            return size.height
+        case .spacing, .xOffset, .yOffset:
+            return 0
+        }
+    }
+
+    mutating func move(property: ShapeEditableProperty, by delta: Double) {
+        switch property {
+        case .xCoordinate:
+            center.xCoordinate += delta
+        case .yCoordinate:
+            center.yCoordinate -= delta
+        case .width:
+            size.width = max(4, size.width + delta)
+        case .height:
+            size.height = max(4, size.height + delta)
+        case .spacing, .xOffset, .yOffset:
+            break
+        }
+    }
+
+    mutating func translateBy(xDelta: Double, yDelta: Double) {
+        center.xCoordinate += xDelta
+        center.yCoordinate += yDelta
+    }
+}
+
 struct DrawnGrid: Identifiable, EditableShape {
     let id = UUID()
     var origin: LogicPoint
@@ -146,7 +204,7 @@ struct DrawnGrid: Identifiable, EditableShape {
     }
 
     var supportedOperationAxes: [OperationAxis] {
-        [.shapeSelection, .spacing, .xOffset, .yOffset]
+        [.spacing, .xOffset, .yOffset]
     }
 
     func value(for property: ShapeEditableProperty) -> Double {
@@ -183,12 +241,15 @@ struct DrawnGrid: Identifiable, EditableShape {
 
 enum DrawingShape: Identifiable {
     case circle(DrawnCircle)
+    case rectangle(DrawnRectangle)
     case grid(DrawnGrid)
 
     var id: UUID {
         switch self {
         case let .circle(circle):
             return circle.id
+        case let .rectangle(rectangle):
+            return rectangle.id
         case let .grid(grid):
             return grid.id
         }
@@ -198,6 +259,8 @@ enum DrawingShape: Identifiable {
         switch self {
         case .circle:
             return "円"
+        case .rectangle:
+            return "矩形"
         case .grid:
             return "グリッド"
         }
@@ -213,7 +276,7 @@ enum DrawingShape: Identifiable {
 
     var showsCentroidCrossByDefault: Bool {
         switch self {
-        case .circle:
+        case .circle, .rectangle:
             return true
         case .grid:
             return false
@@ -224,6 +287,8 @@ enum DrawingShape: Identifiable {
         switch self {
         case let .circle(circle):
             return circle.centroid
+        case let .rectangle(rectangle):
+            return rectangle.centroid
         case let .grid(grid):
             return grid.centroid
         }
@@ -233,6 +298,8 @@ enum DrawingShape: Identifiable {
         switch self {
         case let .circle(circle):
             return circle.bounds
+        case let .rectangle(rectangle):
+            return rectangle.bounds
         case let .grid(grid):
             return grid.bounds
         }
@@ -242,6 +309,8 @@ enum DrawingShape: Identifiable {
         switch self {
         case let .circle(circle):
             return circle.supportedOperationAxes
+        case let .rectangle(rectangle):
+            return rectangle.supportedOperationAxes
         case let .grid(grid):
             return grid.supportedOperationAxes
         }
@@ -251,6 +320,8 @@ enum DrawingShape: Identifiable {
         switch self {
         case let .circle(circle):
             return circle.value(for: property)
+        case let .rectangle(rectangle):
+            return rectangle.value(for: property)
         case let .grid(grid):
             return grid.value(for: property)
         }
@@ -261,6 +332,9 @@ enum DrawingShape: Identifiable {
         case var .circle(circle):
             circle.move(property: property, by: delta)
             self = .circle(circle)
+        case var .rectangle(rectangle):
+            rectangle.move(property: property, by: delta)
+            self = .rectangle(rectangle)
         case var .grid(grid):
             grid.move(property: property, by: delta)
             self = .grid(grid)
@@ -272,6 +346,9 @@ enum DrawingShape: Identifiable {
         case var .circle(circle):
             circle.translateBy(xDelta: xDelta, yDelta: yDelta)
             self = .circle(circle)
+        case var .rectangle(rectangle):
+            rectangle.translateBy(xDelta: xDelta, yDelta: yDelta)
+            self = .rectangle(rectangle)
         case var .grid(grid):
             grid.translateBy(xDelta: xDelta, yDelta: yDelta)
             self = .grid(grid)

@@ -3,12 +3,15 @@ import SwiftUI
 
 enum DrawingPrimitive: Identifiable {
     case circle(CirclePrimitive)
+    case rectangle(RectanglePrimitive)
     case grid(GridPrimitive)
     case centroidCross(CentroidCrossPrimitive)
 
     var id: UUID {
         switch self {
         case let .circle(info):
+            return info.id
+        case let .rectangle(info):
             return info.id
         case let .grid(info):
             return info.id
@@ -22,8 +25,13 @@ struct CirclePrimitive {
     let id: UUID
     let rect: CGRect
     let color: Color
-    let lineWidth: CGFloat
-    let fill: Bool
+    let isSelected: Bool
+}
+
+struct RectanglePrimitive {
+    let id: UUID
+    let rect: CGRect
+    let color: Color
     let isSelected: Bool
 }
 
@@ -63,32 +71,22 @@ final class GraphEditorBridge: ObservableObject {
         }
     }
 
-    var lineWidth: Double {
-        get {
-            logic.lineWidth
-        }
-        set {
-            logic.lineWidth = newValue
-            objectWillChange.send()
-        }
-    }
-
-    var fillCircles: Bool {
-        get {
-            logic.fillCircles
-        }
-        set {
-            logic.fillCircles = newValue
-            objectWillChange.send()
-        }
-    }
-
     var status: EditorStatus {
         logic.status
     }
 
     var groupTreeRows: [GroupTreeRow] {
         logic.groupTreeRows
+    }
+
+    var selectedTreeNodeIDs: Set<UUID> {
+        get {
+            logic.selectedTreeNodeIDs
+        }
+        set {
+            logic.setTreeSelection(ids: newValue)
+            objectWillChange.send()
+        }
     }
 
     var canGroupSelection: Bool {
@@ -113,8 +111,8 @@ final class GraphEditorBridge: ObservableObject {
         objectWillChange.send()
     }
 
-    func toggleTreeSelection(id: UUID) {
-        logic.toggleTreeSelection(id: id)
+    func selectShape(at location: CGPoint) {
+        logic.selectShape(at: Self.logicPoint(from: location))
         objectWillChange.send()
     }
 
@@ -161,43 +159,10 @@ final class GraphEditorBridge: ObservableObject {
         snapshot: LogicSnapshot,
         in size: CGSize
     ) -> [DrawingPrimitive] {
-        var primitives: [DrawingPrimitive] = []
         let isSelected = snapshot.selectedShapeIDs.contains(shape.id)
-
-        switch shape {
-        case let .circle(circle):
-            primitives.append(
-                .circle(
-                    CirclePrimitive(
-                        id: circle.id,
-                        rect: Self.rect(center: circle.center, diameter: circle.diameter),
-                        color: Self.color(from: circle.color),
-                        lineWidth: CGFloat(circle.lineWidth),
-                        fill: snapshot.fillCircles,
-                        isSelected: isSelected
-                    )
-                )
-            )
-        case let .grid(grid):
-            primitives.append(
-                .grid(
-                    GridPrimitive(
-                        id: grid.id,
-                        verticalLinePositions: Self.linePositions(
-                            origin: grid.origin.xCoordinate,
-                            step: grid.spacing,
-                            limit: Double(size.width)
-                        ),
-                        horizontalLinePositions: Self.linePositions(
-                            origin: grid.origin.yCoordinate,
-                            step: grid.spacing,
-                            limit: Double(size.height)
-                        ),
-                        isSelected: isSelected
-                    )
-                )
-            )
-        }
+        var primitives = [
+            drawingPrimitive(for: shape, isSelected: isSelected, in: size)
+        ]
 
         if shape.showsCentroidCrossByDefault || isSelected {
             primitives.append(
@@ -212,6 +177,54 @@ final class GraphEditorBridge: ObservableObject {
         }
 
         return primitives
+    }
+
+    private func drawingPrimitive(
+        for shape: DrawingShape,
+        isSelected: Bool,
+        in size: CGSize
+    ) -> DrawingPrimitive {
+        switch shape {
+        case let .circle(circle):
+            return .circle(
+                CirclePrimitive(
+                    id: circle.id,
+                    rect: Self.rect(center: circle.center, diameter: circle.diameter),
+                    color: Self.color(from: circle.color),
+                    isSelected: isSelected
+                )
+            )
+        case let .rectangle(rectangle):
+            return .rectangle(
+                RectanglePrimitive(
+                    id: rectangle.id,
+                    rect: Self.rect(center: rectangle.center, size: rectangle.size),
+                    color: Self.color(from: rectangle.color),
+                    isSelected: isSelected
+                )
+            )
+        case let .grid(grid):
+            return drawingPrimitive(for: grid, isSelected: isSelected, in: size)
+        }
+    }
+
+    private func drawingPrimitive(for grid: DrawnGrid, isSelected: Bool, in size: CGSize) -> DrawingPrimitive {
+        .grid(
+            GridPrimitive(
+                id: grid.id,
+                verticalLinePositions: Self.linePositions(
+                    origin: grid.origin.xCoordinate,
+                    step: grid.spacing,
+                    limit: Double(size.width)
+                ),
+                horizontalLinePositions: Self.linePositions(
+                    origin: grid.origin.yCoordinate,
+                    step: grid.spacing,
+                    limit: Double(size.height)
+                ),
+                isSelected: isSelected
+            )
+        )
     }
 
     private static func keyCommand(from event: NSEvent) -> LogicKeyCommand? {
@@ -247,6 +260,15 @@ final class GraphEditorBridge: ObservableObject {
             y: center.yCoordinate - diameter / 2,
             width: diameter,
             height: diameter
+        )
+    }
+
+    private static func rect(center: LogicPoint, size: LogicSize) -> CGRect {
+        CGRect(
+            x: center.xCoordinate - size.width / 2,
+            y: center.yCoordinate - size.height / 2,
+            width: size.width,
+            height: size.height
         )
     }
 

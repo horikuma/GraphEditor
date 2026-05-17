@@ -3,6 +3,26 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var bridge = GraphEditorBridge()
+    @State private var graphFocusRequest = 0
+    @State private var graphZoomScale = 1.0
+    @State private var graphGestureZoomScale = 1.0
+    @State private var focusedPane = FocusedPane.graph
+
+    private var currentGraphZoomScale: Double {
+        clampZoomScale(graphZoomScale * graphGestureZoomScale)
+    }
+
+    private var treeSelection: Binding<Set<UUID>> {
+        Binding(
+            get: {
+                bridge.selectedTreeNodeIDs
+            },
+            set: { newValue in
+                focusedPane = .tree
+                bridge.selectedTreeNodeIDs = newValue
+            }
+        )
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -33,21 +53,6 @@ struct ContentView: View {
                 .labelsHidden()
                 .help("線の色")
 
-            Slider(value: $bridge.lineWidth, in: 1...16, step: 1) {
-                Text("線幅")
-            }
-            .frame(width: 140)
-            .help("線幅")
-
-            Text("\(Int(bridge.lineWidth)) px")
-                .font(.system(.caption, design: .monospaced))
-                .foregroundStyle(.secondary)
-                .frame(width: 44, alignment: .leading)
-
-            Toggle("Fill", isOn: $bridge.fillCircles)
-                .toggleStyle(.switch)
-                .help("円を塗りつぶす")
-
             Spacer()
 
             Button {
@@ -68,11 +73,20 @@ struct ContentView: View {
                 let background = Path(CGRect(origin: .zero, size: size))
                 context.fill(background, with: .color(Color(nsColor: .textBackgroundColor)))
 
-                for primitive in bridge.drawingPrimitives(in: size) {
-                    draw(primitive, in: &context, size: size)
+                let zoomScale = currentGraphZoomScale
+                let scaledSize = CGSize(width: size.width / zoomScale, height: size.height / zoomScale)
+
+                context.scaleBy(x: zoomScale, y: zoomScale)
+                for primitive in bridge.drawingPrimitives(in: scaledSize) {
+                    draw(primitive, in: &context, size: scaledSize)
                 }
             }
-            .background(KeyEventHandlingView(onKeyDown: bridge.handleKeyDown))
+            .background(
+                KeyEventHandlingView(
+                    focusRequest: graphFocusRequest,
+                    onKeyDown: bridge.handleKeyDown
+                )
+            )
             .overlay(alignment: .bottomLeading) {
                 let status = bridge.status
                 HStack(spacing: 14) {
@@ -88,11 +102,36 @@ struct ContentView: View {
                 .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 6))
                 .padding(10)
             }
+            .overlay {
+                focusRing(isFocused: focusedPane == .graph)
+            }
             .contentShape(Rectangle())
             .gesture(
-                SpatialTapGesture(coordinateSpace: .local)
+                SpatialTapGesture(count: 2, coordinateSpace: .local)
                     .onEnded { value in
-                        bridge.appendShape(at: value.location, in: geometry.size)
+                        focusedPane = .graph
+                        graphFocusRequest += 1
+                        let scaledLocation = scaledGraphLocation(value.location)
+                        let scaledSize = scaledGraphSize(geometry.size)
+                        bridge.appendShape(at: scaledLocation, in: scaledSize)
+                    }
+            )
+            .simultaneousGesture(
+                SpatialTapGesture(count: 1, coordinateSpace: .local)
+                    .onEnded { value in
+                        focusedPane = .graph
+                        graphFocusRequest += 1
+                        bridge.selectShape(at: scaledGraphLocation(value.location))
+                    }
+            )
+            .simultaneousGesture(
+                MagnificationGesture()
+                    .onChanged { value in
+                        graphGestureZoomScale = value
+                    }
+                    .onEnded { value in
+                        graphZoomScale = clampZoomScale(graphZoomScale * value)
+                        graphGestureZoomScale = 1
                     }
             )
         }
@@ -130,13 +169,22 @@ struct ContentView: View {
 
             Divider()
 
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 2) {
-                    ForEach(bridge.groupTreeRows) { row in
-                        groupTreeRow(row)
-                    }
+            List(selection: treeSelection) {
+                ForEach(bridge.groupTreeRows) { row in
+                    groupTreeRow(row)
+                        .tag(row.id)
+                        .selectionDisabled(!row.isSelectable)
                 }
-                .padding(.vertical, 8)
+            }
+            .listStyle(.sidebar)
+            .background(
+                TreeReturnKeyHandlingView {
+                    focusedPane = .graph
+                    graphFocusRequest += 1
+                }
+            )
+            .overlay {
+                focusRing(isFocused: focusedPane == .tree)
             }
         }
         .frame(width: 240)
@@ -147,7 +195,7 @@ struct ContentView: View {
         HStack(spacing: 6) {
             Image(systemName: row.isGroup ? "folder" : "circle.fill")
                 .font(.system(size: 11))
-                .foregroundStyle(row.isGroup ? Color.accentColor : Color.secondary)
+                .foregroundStyle(row.isGroup ? Color.primary : Color.secondary)
                 .frame(width: 16)
 
             VStack(alignment: .leading, spacing: 1) {
@@ -165,83 +213,49 @@ struct ContentView: View {
         .padding(.leading, CGFloat(row.depth * 14) + 8)
         .padding(.trailing, 8)
         .padding(.vertical, 4)
-        .foregroundStyle(row.isSelected ? Color.accentColor : Color.primary)
+        .padding(.horizontal, 6)
         .background {
             if row.isSelected {
                 RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.accentColor.opacity(0.12))
+                    .fill(Color.accentColor.opacity(focusedPane == .tree ? 0.18 : 0.10))
             }
         }
-        .padding(.horizontal, 6)
-        .contentShape(Rectangle())
-        .onTapGesture {
-            guard row.isSelectable else {
-                return
+        .overlay {
+            if row.isSelected, focusedPane != .tree {
+                RoundedRectangle(cornerRadius: 4)
+                    .stroke(Color.accentColor.opacity(0.28), lineWidth: 1)
+                    .padding(.horizontal, 6)
             }
-
-            bridge.toggleTreeSelection(id: row.id)
         }
         .opacity(row.isSelectable ? 1 : 0.72)
     }
 
-    private func draw(_ primitive: DrawingPrimitive, in context: inout GraphicsContext, size: CGSize) {
-        switch primitive {
-        case let .circle(info):
-            drawCircle(info, in: &context)
-        case let .grid(info):
-            drawGrid(info, in: &context, size: size)
-        case let .centroidCross(info):
-            drawCentroidCross(info, in: &context)
-        }
+    private func scaledGraphLocation(_ location: CGPoint) -> CGPoint {
+        let zoomScale = currentGraphZoomScale
+        return CGPoint(x: location.x / zoomScale, y: location.y / zoomScale)
     }
 
-    private func drawCircle(_ circle: CirclePrimitive, in context: inout GraphicsContext) {
-        let path = Path(ellipseIn: circle.rect)
-        let color = circle.color
-
-        if circle.fill {
-            context.fill(path, with: .color(color.opacity(0.18)))
-        }
-        context.stroke(path, with: .color(color), lineWidth: circle.lineWidth)
-
-        if circle.isSelected {
-            let selectionRect = circle.rect.insetBy(dx: -5, dy: -5)
-            context.stroke(
-                Path(selectionRect),
-                with: .color(Color.primary.opacity(0.45)),
-                style: StrokeStyle(lineWidth: 1, dash: [5, 4])
-            )
-        }
+    private func scaledGraphSize(_ size: CGSize) -> CGSize {
+        let zoomScale = currentGraphZoomScale
+        return CGSize(width: size.width / zoomScale, height: size.height / zoomScale)
     }
 
-    private func drawGrid(_ grid: GridPrimitive, in context: inout GraphicsContext, size: CGSize) {
-        var path = Path()
+}
 
-        grid.verticalLinePositions.forEach { gridX in
-            path.move(to: CGPoint(x: gridX, y: 0))
-            path.addLine(to: CGPoint(x: gridX, y: size.height))
-        }
+private enum FocusedPane {
+    case graph
+    case tree
+}
 
-        grid.horizontalLinePositions.forEach { gridY in
-            path.move(to: CGPoint(x: 0, y: gridY))
-            path.addLine(to: CGPoint(x: size.width, y: gridY))
-        }
+private func focusRing(isFocused: Bool) -> some View {
+    RoundedRectangle(cornerRadius: 0)
+        .stroke(
+            isFocused ? Color.accentColor.opacity(0.7) : Color.secondary.opacity(0.18),
+            lineWidth: isFocused ? 2 : 1
+        )
+        .allowsHitTesting(false)
+}
 
-        let opacity = grid.isSelected ? 0.28 : 0.16
-        context.stroke(path, with: .color(Color.gray.opacity(opacity)), lineWidth: 0.5)
-    }
-
-    private func drawCentroidCross(_ cross: CentroidCrossPrimitive, in context: inout GraphicsContext) {
-        var path = Path()
-        let length: CGFloat = cross.isSelected ? 16 : 12
-
-        path.move(to: CGPoint(x: cross.point.x - length / 2, y: cross.point.y))
-        path.addLine(to: CGPoint(x: cross.point.x + length / 2, y: cross.point.y))
-        path.move(to: CGPoint(x: cross.point.x, y: cross.point.y - length / 2))
-        path.addLine(to: CGPoint(x: cross.point.x, y: cross.point.y + length / 2))
-
-        let opacity = cross.isSelected ? 0.55 : 0.35
-        context.stroke(path, with: .color(Color.gray.opacity(opacity)), lineWidth: 0.75)
-    }
-
+private func clampZoomScale(_ zoomScale: Double) -> Double {
+    min(max(zoomScale, 0.25), 4)
 }

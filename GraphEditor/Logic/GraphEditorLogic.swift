@@ -10,7 +10,6 @@ struct EditorStatus {
 struct LogicSnapshot {
     let shapes: [DrawingShape]
     let selectedShapeIDs: Set<DrawingShape.ID>
-    let fillCircles: Bool
 }
 
 struct GroupTreeRow: Identifiable {
@@ -31,18 +30,17 @@ private struct InitialShapeTree {
 final class GraphEditorLogic {
     var addableShapeKind = AddableShapeKind.circle
     var strokeColor = LogicColor.accent
-    var lineWidth = 3.0
-    var fillCircles = false
 
     private var rootGroup: ShapeGroup
     private var selectedNodeIDs: Set<UUID>
     private var nextGroupNumber = 1
-    private var operationAxis = OperationAxis.shapeSelection
+    private var operationAxis = OperationAxis.xCoordinate
 
     init() {
         let initialState = makeInitialShapeTree()
         rootGroup = initialState.rootGroup
         selectedNodeIDs = [initialState.initialSelectionID]
+        normalizeOperationAxis()
     }
 
     var status: EditorStatus {
@@ -56,6 +54,10 @@ final class GraphEditorLogic {
 
     var groupTreeRows: [GroupTreeRow] {
         rows(for: rootGroup, depth: 0)
+    }
+
+    var selectedTreeNodeIDs: Set<UUID> {
+        selectedNodeIDs
     }
 
     var canGroupSelection: Bool {
@@ -75,8 +77,7 @@ final class GraphEditorLogic {
     var snapshot: LogicSnapshot {
         LogicSnapshot(
             shapes: rootGroup.flattenedShapes,
-            selectedShapeIDs: selectedShapeIDs,
-            fillCircles: fillCircles
+            selectedShapeIDs: selectedShapeIDs
         )
     }
 
@@ -85,27 +86,29 @@ final class GraphEditorLogic {
         rootGroup = initialState.rootGroup
         selectedNodeIDs = [initialState.initialSelectionID]
         nextGroupNumber = 1
-        operationAxis = .shapeSelection
+        normalizeOperationAxis()
     }
 
     func appendShape(at location: LogicPoint, in size: LogicSize) {
         let clampedLocation = clamp(location, in: size)
-
-        switch addableShapeKind {
-        case .circle:
-            appendShape(
-                .circle(
-                    DrawnCircle(
-                        center: clampedLocation,
-                        diameter: 48,
-                        color: strokeColor,
-                        lineWidth: lineWidth
-                    )
-                )
+        appendShape(
+            makeDrawingShape(
+                kind: addableShapeKind,
+                location: clampedLocation,
+                color: strokeColor
             )
-        case .grid:
-            appendShape(.grid(DrawnGrid(origin: clampedLocation, spacing: 24)))
+        )
+    }
+
+    func selectShape(at location: LogicPoint) {
+        guard let selectedID = rootGroup.hitSelectableID(at: location) else {
+            selectedNodeIDs.removeAll()
+            normalizeOperationAxis()
+            return
         }
+
+        selectedNodeIDs = [selectedID]
+        normalizeOperationAxis()
     }
 
     func handleKeyCommand(_ command: LogicKeyCommand, modifiers: LogicKeyModifiers) -> Bool {
@@ -123,18 +126,10 @@ final class GraphEditorLogic {
         return true
     }
 
-    func toggleTreeSelection(id: UUID) {
-        guard rootGroup.id != id else {
-            return
-        }
-
-        if selectedNodeIDs.contains(id) {
-            selectedNodeIDs.remove(id)
-        } else {
-            selectedNodeIDs.insert(id)
-        }
-
-        operationAxis = .shapeSelection
+    func setTreeSelection(ids: Set<UUID>) {
+        let selectableIDs = Set(rootGroup.children.map(\.id))
+        selectedNodeIDs = ids.intersection(selectableIDs)
+        normalizeOperationAxis()
     }
 
     func groupSelection() {
@@ -153,7 +148,7 @@ final class GraphEditorLogic {
         rootGroup.children.append(.group(group))
         normalizeRootChildrenOrder()
         selectedNodeIDs = [group.id]
-        operationAxis = .shapeSelection
+        normalizeOperationAxis()
     }
 
     func ungroupSelection() {
@@ -171,13 +166,11 @@ final class GraphEditorLogic {
 
         rootGroup.children.append(contentsOf: ungroupedShapes)
         selectedNodeIDs = Set(ungroupedShapes.flatMap(\.shapeIDs))
-        operationAxis = .shapeSelection
+        normalizeOperationAxis()
     }
 
     private var operationValueText: String {
         switch operationAxis {
-        case .shapeSelection:
-            return "\(selectedNodeIDs.count) selected"
         case .xCoordinate, .yCoordinate, .width, .height, .spacing, .xOffset, .yOffset:
             guard
                 let selectedGroup = editingGroup,
@@ -201,7 +194,7 @@ final class GraphEditorLogic {
     private func appendShape(_ shape: DrawingShape) {
         rootGroup.children.append(.shape(shape))
         selectedNodeIDs = [shape.id]
-        operationAxis = .shapeSelection
+        normalizeOperationAxis()
     }
 
     private func applyLinearOperation(delta: Double) {
@@ -211,11 +204,6 @@ final class GraphEditorLogic {
         }
 
         ensureSelection()
-
-        if operationAxis == .shapeSelection {
-            moveSelection(by: delta > 0 ? 1 : -1)
-            return
-        }
 
         guard
             let selectedGroup = editingGroup,
@@ -237,7 +225,7 @@ final class GraphEditorLogic {
             let selectedGroup = editingGroup,
             ShapeGroupEditing.supportedOperationAxes(for: selectedGroup).contains(operationAxis)
         else {
-            operationAxis = .shapeSelection
+            normalizeOperationAxis()
             return
         }
     }
@@ -245,9 +233,12 @@ final class GraphEditorLogic {
     private func selectAxis(step: Int) {
         ensureSelection()
 
-        let axes = editingGroup.map(ShapeGroupEditing.supportedOperationAxes) ?? [.shapeSelection]
+        let axes = editingGroup.map(ShapeGroupEditing.supportedOperationAxes) ?? []
+        guard !axes.isEmpty else {
+            return
+        }
         guard let currentIndex = axes.firstIndex(of: operationAxis) else {
-            operationAxis = .shapeSelection
+            operationAxis = axes[0]
             return
         }
 
@@ -255,20 +246,15 @@ final class GraphEditorLogic {
         operationAxis = axes[nextIndex]
     }
 
-    private func moveSelection(by delta: Int) {
-        guard !rootGroup.children.isEmpty else {
-            selectedNodeIDs.removeAll()
-            return
-        }
-
-        let currentIndex = selectedRootChildIndices.first ?? 0
-        let nextIndex = (currentIndex + delta + rootGroup.children.count) % rootGroup.children.count
-        selectedNodeIDs = [rootGroup.children[nextIndex].id]
-        operationAxis = .shapeSelection
-    }
-
     private func keyStep(for modifiers: LogicKeyModifiers) -> Double {
         modifiers.isShiftPressed ? 10 : 1
+    }
+
+    private func normalizeOperationAxis() {
+        let axes = editingGroup.map(ShapeGroupEditing.supportedOperationAxes) ?? []
+        if let axis = axes.first {
+            operationAxis = axis
+        }
     }
 
     private func normalizeRootChildrenOrder() {
@@ -336,6 +322,31 @@ private func clamp(_ point: LogicPoint, in size: LogicSize) -> LogicPoint {
         xCoordinate: min(max(point.xCoordinate, 0), size.width),
         yCoordinate: min(max(point.yCoordinate, 0), size.height)
     )
+}
+
+private func makeDrawingShape(
+    kind: AddableShapeKind,
+    location: LogicPoint,
+    color: LogicColor
+) -> DrawingShape {
+    switch kind {
+    case .circle:
+        return .circle(
+            DrawnCircle(
+                center: location,
+                diameter: 48,
+                color: color
+            )
+        )
+    case .rectangle:
+        return .rectangle(
+            DrawnRectangle(
+                center: location,
+                size: LogicSize(width: 72, height: 48),
+                color: color
+            )
+        )
+    }
 }
 
 private func makeInitialShapeTree() -> InitialShapeTree {

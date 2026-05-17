@@ -2,7 +2,12 @@ import AppKit
 import SwiftUI
 
 struct KeyEventHandlingView: NSViewRepresentable {
+    let focusRequest: Int
     let onKeyDown: (NSEvent) -> Bool
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(focusRequest: focusRequest)
+    }
 
     func makeNSView(context: Context) -> KeyEventNSView {
         let view = KeyEventNSView()
@@ -18,8 +23,20 @@ struct KeyEventHandlingView: NSViewRepresentable {
     func updateNSView(_ nsView: KeyEventNSView, context: Context) {
         nsView.onKeyDown = onKeyDown
 
-        DispatchQueue.main.async {
-            nsView.window?.makeFirstResponder(nsView)
+        if context.coordinator.focusRequest != focusRequest {
+            context.coordinator.focusRequest = focusRequest
+
+            DispatchQueue.main.async {
+                nsView.window?.makeFirstResponder(nsView)
+            }
+        }
+    }
+
+    final class Coordinator {
+        var focusRequest: Int
+
+        init(focusRequest: Int) {
+            self.focusRequest = focusRequest
         }
     }
 }

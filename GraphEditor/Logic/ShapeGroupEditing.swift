@@ -4,14 +4,14 @@ enum ShapeGroupEditing {
     static func supportedOperationAxes(for group: ShapeGroup) -> [OperationAxis] {
         let shapes = group.flattenedShapes
         guard !shapes.isEmpty else {
-            return [.shapeSelection]
+            return []
         }
 
         if shapes.allSatisfy(\.isGrid) {
-            return [.shapeSelection, .spacing, .xOffset, .yOffset]
+            return [.spacing, .xOffset, .yOffset]
         }
 
-        return [.shapeSelection, .xCoordinate, .yCoordinate, .width, .height]
+        return [.xCoordinate, .yCoordinate, .width, .height]
     }
 
     static func value(for property: ShapeEditableProperty, in group: ShapeGroup) -> Double {
