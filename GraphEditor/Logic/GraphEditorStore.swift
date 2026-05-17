@@ -27,7 +27,7 @@ private struct InitialShapeTree {
     let initialSelectionID: UUID
 }
 
-final class GraphEditorLogic {
+final class GraphEditorStore {
     var addableShapeKind = AddableShapeKind.circle
     var strokeColor = LogicColor.accent
 

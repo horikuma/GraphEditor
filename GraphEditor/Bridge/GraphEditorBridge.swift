@@ -1,128 +1,81 @@
 import AppKit
 import SwiftUI
 
-enum DrawingPrimitive: Identifiable {
-    case circle(CirclePrimitive)
-    case rectangle(RectanglePrimitive)
-    case grid(GridPrimitive)
-    case centroidCross(CentroidCrossPrimitive)
-
-    var id: UUID {
-        switch self {
-        case let .circle(info):
-            return info.id
-        case let .rectangle(info):
-            return info.id
-        case let .grid(info):
-            return info.id
-        case let .centroidCross(info):
-            return info.id
-        }
-    }
-}
-
-struct CirclePrimitive {
-    let id: UUID
-    let rect: CGRect
-    let color: Color
-    let isSelected: Bool
-}
-
-struct RectanglePrimitive {
-    let id: UUID
-    let rect: CGRect
-    let color: Color
-    let isSelected: Bool
-}
-
-struct GridPrimitive {
-    let id: UUID
-    let verticalLinePositions: [CGFloat]
-    let horizontalLinePositions: [CGFloat]
-    let isSelected: Bool
-}
-
-struct CentroidCrossPrimitive {
-    let id: UUID
-    let point: CGPoint
-    let isSelected: Bool
-}
-
 final class GraphEditorBridge: ObservableObject {
-    private let logic = GraphEditorLogic()
+    private let store = GraphEditorStore()
 
     var addableShapeKind: AddableShapeKind {
         get {
-            logic.addableShapeKind
+            store.addableShapeKind
         }
         set {
-            logic.addableShapeKind = newValue
+            store.addableShapeKind = newValue
             objectWillChange.send()
         }
     }
 
     var strokeColor: Color {
         get {
-            Self.color(from: logic.strokeColor)
+            Self.color(from: store.strokeColor)
         }
         set {
-            logic.strokeColor = Self.logicColor(from: newValue)
+            store.strokeColor = Self.logicColor(from: newValue)
             objectWillChange.send()
         }
     }
 
     var status: EditorStatus {
-        logic.status
+        store.status
     }
 
     var groupTreeRows: [GroupTreeRow] {
-        logic.groupTreeRows
+        store.groupTreeRows
     }
 
     var selectedTreeNodeIDs: Set<UUID> {
         get {
-            logic.selectedTreeNodeIDs
+            store.selectedTreeNodeIDs
         }
         set {
-            logic.setTreeSelection(ids: newValue)
+            store.setTreeSelection(ids: newValue)
             objectWillChange.send()
         }
     }
 
     var canGroupSelection: Bool {
-        logic.canGroupSelection
+        store.canGroupSelection
     }
 
     var canUngroupSelection: Bool {
-        logic.canUngroupSelection
+        store.canUngroupSelection
     }
 
     var isClearDisabled: Bool {
-        logic.isClearDisabled
+        store.isClearDisabled
     }
 
     func clear() {
-        logic.clear()
+        store.clear()
         objectWillChange.send()
     }
 
     func appendShape(at location: CGPoint, in size: CGSize) {
-        logic.appendShape(at: Self.logicPoint(from: location), in: Self.logicSize(from: size))
+        store.appendShape(at: Self.logicPoint(from: location), in: Self.logicSize(from: size))
         objectWillChange.send()
     }
 
     func selectShape(at location: CGPoint) {
-        logic.selectShape(at: Self.logicPoint(from: location))
+        store.selectShape(at: Self.logicPoint(from: location))
         objectWillChange.send()
     }
 
     func groupSelection() {
-        logic.groupSelection()
+        store.groupSelection()
         objectWillChange.send()
     }
 
     func ungroupSelection() {
-        logic.ungroupSelection()
+        store.ungroupSelection()
         objectWillChange.send()
     }
 
@@ -134,7 +87,7 @@ final class GraphEditorBridge: ObservableObject {
         let modifiers = LogicKeyModifiers(
             isShiftPressed: event.modifierFlags.intersection(.deviceIndependentFlagsMask).contains(.shift)
         )
-        let handled = logic.handleKeyCommand(command, modifiers: modifiers)
+        let handled = store.handleKeyCommand(command, modifiers: modifiers)
 
         if handled {
             objectWillChange.send()
@@ -144,7 +97,7 @@ final class GraphEditorBridge: ObservableObject {
     }
 
     func drawingPrimitives(in size: CGSize) -> [DrawingPrimitive] {
-        let snapshot = logic.snapshot
+        let snapshot = store.snapshot
         let grids = snapshot.shapes.filter(\.isGrid).flatMap {
             drawingPrimitives(for: $0, snapshot: snapshot, in: size)
         }
