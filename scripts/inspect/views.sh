@@ -2,9 +2,9 @@
 
 set -euo pipefail
 
-PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+PROJECT_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 PYTHON="$PROJECT_ROOT/.venv/bin/python"
-SCRIPT_DIR="$PROJECT_ROOT/inspector"
+SCRIPT_DIR="$PROJECT_ROOT/scripts/inspect"
 VIEWS_DIR="$SCRIPT_DIR/views"
 COMMAND="${1:-all}"
 ARG2="${2:-}"
@@ -72,7 +72,6 @@ case "$COMMAND" in
   all)
     "$0" funcs "$COLLECT_DB_PATH" "$SOURCE_ROOT" "$CALL_GRAPH_PATH"
     "$0" vars "$COLLECT_DB_PATH" "$SOURCE_ROOT" "$CALL_GRAPH_PATH"
-    "$0" edges "$COLLECT_DB_PATH" "$SOURCE_ROOT" "$CALL_GRAPH_PATH"
     "$0" call-graph "$COLLECT_DB_PATH" "$SOURCE_ROOT" "$CALL_GRAPH_PATH"
     ;;
 
@@ -86,13 +85,6 @@ case "$COMMAND" in
     run_step_to_stdout_file vars "$OUTPUT_DIR/vars.log" \
       "$PYTHON" "$VIEWS_DIR/variables.py" \
         "$COLLECT_DB_PATH"
-    ;;
-
-  edges)
-    run_step_to_stdout_file edges "$OUTPUT_DIR/edges.log" \
-      "$PYTHON" "$VIEWS_DIR/edges.py" \
-        "$COLLECT_DB_PATH" \
-        --source-root "$SOURCE_ROOT"
     ;;
 
   call-graph)
