@@ -15,7 +15,7 @@
 		00A0000A0000000000000006 /* KeyEventHandlingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000007 /* KeyEventHandlingView.swift */; };
 		00A0000A0000000000000007 /* GraphEditorBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000008 /* GraphEditorBridge.swift */; };
 		00A0000A0000000000000008 /* ShapeGroups.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000009 /* ShapeGroups.swift */; };
-		00A0000A0000000000000009 /* ShapeGroupEditing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B000000000000000A /* ShapeGroupEditing.swift */; };
+		00A0000A0000000000000009 /* ShapeGroupOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B000000000000000A /* ShapeGroupOperation.swift */; };
 		00A0000A000000000000000B /* ContentView+Drawing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B000000000000000B /* ContentView+Drawing.swift */; };
 		00A0000A000000000000000C /* TreeReturnKeyHandlingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B000000000000000C /* TreeReturnKeyHandlingView.swift */; };
 		00A0000A000000000000000D /* ShapeGroup+HitTesting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B000000000000000D /* ShapeGroup+HitTesting.swift */; };
@@ -34,6 +34,8 @@
 		00A0000A000000000000001A /* GraphEditorStore+OperationAxes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B000000000000001A /* GraphEditorStore+OperationAxes.swift */; };
 		00A0000A000000000000001B /* ContentView+InspectorPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B000000000000001B /* ContentView+InspectorPanel.swift */; };
 		00A0000A000000000000001C /* LogicPoint+Rotation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B000000000000001C /* LogicPoint+Rotation.swift */; };
+		00A0000A000000000000001D /* ShapeGroupGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B000000000000001D /* ShapeGroupGeometry.swift */; };
+		00A0000A000000000000001E /* ShapeGroupTraversal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B000000000000001E /* ShapeGroupTraversal.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -46,7 +48,7 @@
 		00A0000B0000000000000007 /* KeyEventHandlingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/KeyEventHandlingView.swift; sourceTree = "<group>"; };
 		00A0000B0000000000000008 /* GraphEditorBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bridge/GraphEditorBridge.swift; sourceTree = "<group>"; };
 		00A0000B0000000000000009 /* ShapeGroups.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/ShapeGroups.swift; sourceTree = "<group>"; };
-		00A0000B000000000000000A /* ShapeGroupEditing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/ShapeGroupEditing.swift; sourceTree = "<group>"; };
+		00A0000B000000000000000A /* ShapeGroupOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/ShapeGroupOperation.swift; sourceTree = "<group>"; };
 		00A0000B000000000000000B /* ContentView+Drawing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/ContentView+Drawing.swift"; sourceTree = "<group>"; };
 		00A0000B000000000000000C /* TreeReturnKeyHandlingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/TreeReturnKeyHandlingView.swift; sourceTree = "<group>"; };
 		00A0000B000000000000000D /* ShapeGroup+HitTesting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Logic/ShapeGroup+HitTesting.swift"; sourceTree = "<group>"; };
@@ -65,6 +67,8 @@
 		00A0000B000000000000001A /* GraphEditorStore+OperationAxes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Logic/GraphEditorStore+OperationAxes.swift"; sourceTree = "<group>"; };
 		00A0000B000000000000001B /* ContentView+InspectorPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/ContentView+InspectorPanel.swift"; sourceTree = "<group>"; };
 		00A0000B000000000000001C /* LogicPoint+Rotation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Logic/LogicPoint+Rotation.swift"; sourceTree = "<group>"; };
+		00A0000B000000000000001D /* ShapeGroupGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/ShapeGroupGeometry.swift; sourceTree = "<group>"; };
+		00A0000B000000000000001E /* ShapeGroupTraversal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/ShapeGroupTraversal.swift; sourceTree = "<group>"; };
 		00A0000C0000000000000001 /* GraphEditor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GraphEditor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -107,7 +111,9 @@
 				00A0000B0000000000000006 /* DrawingShape.swift */,
 				00A0000B0000000000000009 /* ShapeGroups.swift */,
 				00A0000B000000000000000D /* ShapeGroup+HitTesting.swift */,
-				00A0000B000000000000000A /* ShapeGroupEditing.swift */,
+				00A0000B000000000000000A /* ShapeGroupOperation.swift */,
+				00A0000B000000000000001D /* ShapeGroupGeometry.swift */,
+				00A0000B000000000000001E /* ShapeGroupTraversal.swift */,
 				00A0000B0000000000000005 /* ShapeEditing.swift */,
 				00A0000B0000000000000019 /* OperationAxisRow.swift */,
 				00A0000B0000000000000017 /* DrawingPrimitive.swift */,
@@ -215,7 +221,9 @@
 				00A0000A0000000000000005 /* DrawingShape.swift in Sources */,
 				00A0000A0000000000000008 /* ShapeGroups.swift in Sources */,
 				00A0000A000000000000000D /* ShapeGroup+HitTesting.swift in Sources */,
-				00A0000A0000000000000009 /* ShapeGroupEditing.swift in Sources */,
+				00A0000A0000000000000009 /* ShapeGroupOperation.swift in Sources */,
+				00A0000A000000000000001D /* ShapeGroupGeometry.swift in Sources */,
+				00A0000A000000000000001E /* ShapeGroupTraversal.swift in Sources */,
 				00A0000A0000000000000004 /* ShapeEditing.swift in Sources */,
 				00A0000A0000000000000019 /* OperationAxisRow.swift in Sources */,
 				00A0000A0000000000000017 /* DrawingPrimitive.swift in Sources */,

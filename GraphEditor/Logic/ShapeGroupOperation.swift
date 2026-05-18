@@ -1,6 +1,6 @@
 import Foundation
 
-enum ShapeGroupEditing {
+enum ShapeGroupOperation {
     static func supportedOperationAxes(for group: ShapeGroup) -> [OperationAxis] {
         let shapes = group.flattenedShapes
         guard !shapes.isEmpty else {
@@ -29,34 +29,24 @@ enum ShapeGroupEditing {
         }
     }
 
-    @discardableResult
-    static func moveGroup(
-        id: ShapeGroup.ID,
-        property: ShapeEditableProperty,
-        by delta: Double,
-        in rootGroup: inout ShapeGroup
-    ) -> Bool {
-        rootGroup.updateGroup(id: id) { group in
-            move(property: property, by: delta, in: &group)
-        }
-    }
-
     static func moveNodes(
         ids: Set<UUID>,
         property: ShapeEditableProperty,
         by delta: Double,
         in rootGroup: inout ShapeGroup
     ) {
-        rootGroup.updateSelectedElements(ids: ids) { element in
+        ShapeGroupTraversal.updateSelectedElements(ids: ids, in: &rootGroup) { element in
             move(property: property, by: delta, in: &element)
         }
     }
 
     static func rotateNodes(ids: Set<UUID>, degrees: Double, in rootGroup: inout ShapeGroup) {
-        let selectedElements = rootGroup.selectedElements(ids: ids)
-        let pivot = ShapeGroup(title: "選択", children: selectedElements).rotationCentroid
-        rootGroup.updateSelectedElements(ids: ids) { element in
-            rotateBy(degrees: degrees, around: pivot, in: &element)
+        let selectedElements = ShapeGroupTraversal.selectedElements(in: rootGroup, ids: ids)
+        let pivot = ShapeGroupGeometry.rotationCentroid(
+            of: ShapeGroup(title: "選択", children: selectedElements)
+        )
+        ShapeGroupTraversal.updateSelectedElements(ids: ids, in: &rootGroup) { element in
+            ShapeGroupGeometry.rotateBy(degrees: degrees, around: pivot, in: &element)
         }
     }
 
@@ -71,11 +61,15 @@ enum ShapeGroupEditing {
     private static func move(property: ShapeEditableProperty, by delta: Double, in group: inout ShapeGroup) {
         switch property {
         case .xCoordinate:
-            translateBy(xDelta: delta, yDelta: 0, in: &group)
+            ShapeGroupGeometry.translateBy(xDelta: delta, yDelta: 0, in: &group)
         case .yCoordinate:
-            translateBy(xDelta: 0, yDelta: -delta, in: &group)
+            ShapeGroupGeometry.translateBy(xDelta: 0, yDelta: -delta, in: &group)
         case .rotation:
-            rotateBy(degrees: delta, around: group.rotationCentroid, in: &group)
+            ShapeGroupGeometry.rotateBy(
+                degrees: delta,
+                around: ShapeGroupGeometry.rotationCentroid(of: group),
+                in: &group
+            )
         case .width, .height, .spacing, .xOffset, .yOffset:
             for index in group.children.indices {
                 move(property: property, by: delta, in: &group.children[index])
@@ -98,44 +92,6 @@ enum ShapeGroupEditing {
             }
 
             shape.move(property: property, by: delta)
-            element = .shape(shape)
-        }
-    }
-
-    private static func translateBy(xDelta: Double, yDelta: Double, in group: inout ShapeGroup) {
-        for index in group.children.indices {
-            translateBy(xDelta: xDelta, yDelta: yDelta, in: &group.children[index])
-        }
-    }
-
-    private static func translateBy(xDelta: Double, yDelta: Double, in element: inout ShapeGroupElement) {
-        switch element {
-        case var .group(group):
-            translateBy(xDelta: xDelta, yDelta: yDelta, in: &group)
-            element = .group(group)
-        case var .shape(shape):
-            shape.translateBy(xDelta: xDelta, yDelta: yDelta)
-            element = .shape(shape)
-        }
-    }
-
-    private static func rotateBy(degrees: Double, around pivot: LogicPoint, in group: inout ShapeGroup) {
-        for index in group.children.indices {
-            rotateBy(degrees: degrees, around: pivot, in: &group.children[index])
-        }
-    }
-
-    private static func rotateBy(
-        degrees: Double,
-        around pivot: LogicPoint,
-        in element: inout ShapeGroupElement
-    ) {
-        switch element {
-        case var .group(group):
-            rotateBy(degrees: degrees, around: pivot, in: &group)
-            element = .group(group)
-        case var .shape(shape):
-            shape.rotateBy(degrees: degrees, around: pivot)
             element = .shape(shape)
         }
     }

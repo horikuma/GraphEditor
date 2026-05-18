@@ -195,6 +195,33 @@ def _yaml_quote(value: str) -> str:
     return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
 
+def _is_reachable(start_usr: str, target_usr: str, adjacency: dict[str, list[str]]) -> bool:
+    pending = list(adjacency.get(start_usr, []))
+    visited: set[str] = set()
+    while pending:
+        current_usr = pending.pop()
+        if current_usr == target_usr:
+            return True
+        if current_usr in visited:
+            continue
+        visited.add(current_usr)
+        pending.extend(adjacency.get(current_usr, []))
+    return False
+
+
+def _is_recursive_edge(caller_usr: str, callee_usr: str, adjacency: dict[str, list[str]]) -> bool:
+    return caller_usr == callee_usr or _is_reachable(callee_usr, caller_usr, adjacency)
+
+
+def _call_graph_display_name(
+    function: FunctionRecord,
+    source_target: Path | None,
+    is_recursive: bool,
+) -> str:
+    display_name = _function_display_name(function, source_target)
+    return f"{display_name} [recursive]" if is_recursive else display_name
+
+
 def _render_call_graph(db_path: Path, source_target: Path | None) -> str:
     functions = _load_functions(db_path)
     edges = _load_edges(db_path)
@@ -223,12 +250,22 @@ def _render_call_graph(db_path: Path, source_target: Path | None) -> str:
             lines.append("    calls:")
             for callee_usr in callee_usrs:
                 callee = function_by_usr[callee_usr]
-                lines.append(f"      - {_yaml_quote(_function_display_name(callee, source_target))}")
+                display_name = _call_graph_display_name(
+                    callee,
+                    source_target,
+                    _is_recursive_edge(function.usr, callee_usr, adjacency),
+                )
+                lines.append(f"      - {_yaml_quote(display_name)}")
         if caller_usrs:
             lines.append("    called_by:")
             for caller_usr in caller_usrs:
                 caller = function_by_usr[caller_usr]
-                lines.append(f"      - {_yaml_quote(_function_display_name(caller, source_target))}")
+                display_name = _call_graph_display_name(
+                    caller,
+                    source_target,
+                    _is_recursive_edge(caller_usr, function.usr, adjacency),
+                )
+                lines.append(f"      - {_yaml_quote(display_name)}")
 
     return "\n".join(lines) + "\n"
 

@@ -134,7 +134,7 @@ final class GraphEditorStore {
     }
 
     func setTreeSelection(ids: Set<UUID>) {
-        selectedNodeIDs = ids.intersection(rootGroup.selectableIDs)
+        selectedNodeIDs = ids.intersection(ShapeGroupTraversal.selectableIDs(in: rootGroup))
         normalizeOperationAxis()
     }
 
@@ -221,26 +221,27 @@ final class GraphEditorStore {
         guard
             let selectedGroup = editingGroup,
             let property = operationAxis.editableProperty,
-            ShapeGroupEditing.supportedOperationAxes(for: selectedGroup).contains(operationAxis)
+            ShapeGroupOperation.supportedOperationAxes(for: selectedGroup).contains(operationAxis)
         else {
             return
         }
 
         if property == .rotation {
-            ShapeGroupEditing.rotateNodes(ids: selectedNodeIDs, degrees: delta, in: &rootGroup)
+            ShapeGroupOperation.rotateNodes(ids: selectedNodeIDs, degrees: delta, in: &rootGroup)
         } else {
-            ShapeGroupEditing.moveNodes(ids: selectedNodeIDs, property: property, by: delta, in: &rootGroup)
+            ShapeGroupOperation.moveNodes(ids: selectedNodeIDs, property: property, by: delta, in: &rootGroup)
         }
     }
 
     private func ensureSelection() {
-        if selectedNodeIDs.isEmpty || rootGroup.selectedElements(ids: selectedNodeIDs).isEmpty {
+        let selectedElements = ShapeGroupTraversal.selectedElements(in: rootGroup, ids: selectedNodeIDs)
+        if selectedNodeIDs.isEmpty || selectedElements.isEmpty {
             selectedNodeIDs = rootGroup.children.first.map { [$0.id] } ?? []
         }
 
         guard
             let selectedGroup = editingGroup,
-            ShapeGroupEditing.supportedOperationAxes(for: selectedGroup).contains(operationAxis)
+            ShapeGroupOperation.supportedOperationAxes(for: selectedGroup).contains(operationAxis)
         else {
             normalizeOperationAxis()
             return
@@ -250,7 +251,7 @@ final class GraphEditorStore {
     private func selectAxis(step: Int) {
         ensureSelection()
 
-        let axes = editingGroup.map(ShapeGroupEditing.supportedOperationAxes) ?? []
+        let axes = editingGroup.map(ShapeGroupOperation.supportedOperationAxes) ?? []
         guard !axes.isEmpty else {
             return
         }
@@ -268,7 +269,7 @@ final class GraphEditorStore {
     }
 
     private func normalizeOperationAxis() {
-        let axes = editingGroup.map(ShapeGroupEditing.supportedOperationAxes) ?? []
+        let axes = editingGroup.map(ShapeGroupOperation.supportedOperationAxes) ?? []
         if let axis = axes.first {
             operationAxis = axis
         }
@@ -283,7 +284,7 @@ final class GraphEditorStore {
     }
 
     private var selectedShapeIDs: Set<DrawingShape.ID> {
-        Set(rootGroup.selectedElements(ids: selectedNodeIDs).flatMap(\.shapeIDs))
+        Set(ShapeGroupTraversal.selectedElements(in: rootGroup, ids: selectedNodeIDs).flatMap(\.shapeIDs))
     }
 
     private var selectedGroupCentroid: LogicPoint? {
@@ -291,11 +292,11 @@ final class GraphEditorStore {
             return nil
         }
 
-        return group.rotationCentroid
+        return ShapeGroupGeometry.rotationCentroid(of: group)
     }
 
     var editingGroup: ShapeGroup? {
-        let selectedElements = rootGroup.selectedElements(ids: selectedNodeIDs)
+        let selectedElements = ShapeGroupTraversal.selectedElements(in: rootGroup, ids: selectedNodeIDs)
         guard !selectedElements.isEmpty else {
             return nil
         }

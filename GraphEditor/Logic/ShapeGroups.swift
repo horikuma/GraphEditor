@@ -88,27 +88,6 @@ struct ShapeGroup: Identifiable {
         )
     }
 
-    var rotationCentroid: LogicPoint {
-        let weightedValues = flattenedShapes.map { shape in
-            (centroid: shape.centroid, area: shape.rotationArea)
-        }.filter { $0.area > 0 }
-        guard !weightedValues.isEmpty else {
-            return centroid
-        }
-
-        let totalArea = weightedValues.reduce(0) { $0 + $1.area }
-        let weightedSum = weightedValues.reduce(LogicPoint.zero) { partialResult, value in
-            LogicPoint(
-                xCoordinate: partialResult.xCoordinate + value.centroid.xCoordinate * value.area,
-                yCoordinate: partialResult.yCoordinate + value.centroid.yCoordinate * value.area
-            )
-        }
-        return LogicPoint(
-            xCoordinate: weightedSum.xCoordinate / totalArea,
-            yCoordinate: weightedSum.yCoordinate / totalArea
-        )
-    }
-
     var bounds: LogicRect? {
         flattenedShapes.compactMap(\.bounds).reduce(nil) { partialResult, bounds in
             partialResult?.union(bounds) ?? bounds
@@ -159,15 +138,6 @@ struct ShapeGroup: Identifiable {
 }
 
 extension ShapeGroupElement {
-    var selectableIDs: Set<UUID> {
-        switch self {
-        case let .group(group):
-            return Set([group.id]).union(group.children.flatMap(\.selectableIDs))
-        case let .shape(shape):
-            return [shape.id]
-        }
-    }
-
     var flattenedShapes: [DrawingShape] {
         switch self {
         case let .group(group):
@@ -191,45 +161,6 @@ extension ShapeGroupElement {
             return group.group(id: id)
         case .shape:
             return nil
-        }
-    }
-}
-
-extension ShapeGroup {
-    var selectableIDs: Set<UUID> {
-        Set(children.flatMap(\.selectableIDs))
-    }
-
-    func selectedElements(ids: Set<UUID>) -> [ShapeGroupElement] {
-        children.flatMap { child -> [ShapeGroupElement] in
-            if ids.contains(child.id) {
-                return [child]
-            }
-
-            guard case let .group(group) = child else {
-                return []
-            }
-
-            return group.selectedElements(ids: ids)
-        }
-    }
-
-    mutating func updateSelectedElements(
-        ids: Set<UUID>,
-        transform: (inout ShapeGroupElement) -> Void
-    ) {
-        for index in children.indices {
-            if ids.contains(children[index].id) {
-                transform(&children[index])
-                continue
-            }
-
-            guard case var .group(group) = children[index] else {
-                continue
-            }
-
-            group.updateSelectedElements(ids: ids, transform: transform)
-            children[index] = .group(group)
         }
     }
 }

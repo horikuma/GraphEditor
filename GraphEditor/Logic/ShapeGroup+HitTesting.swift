@@ -38,7 +38,7 @@ private extension ShapeGroupElement {
 
 private extension ShapeGroup {
     func isSelectionContext(for selectedIDs: Set<UUID>) -> Bool {
-        !selectedIDs.isDisjoint(with: selectableIDs)
+        !selectedIDs.isDisjoint(with: ShapeGroupTraversal.selectableIDs(in: self))
     }
 }
 

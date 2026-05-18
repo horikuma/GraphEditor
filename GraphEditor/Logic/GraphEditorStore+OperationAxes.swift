@@ -10,7 +10,7 @@ extension GraphEditorStore {
             return []
         }
 
-        return ShapeGroupEditing.supportedOperationAxes(for: selectedGroup).map { axis in
+        return ShapeGroupOperation.supportedOperationAxes(for: selectedGroup).map { axis in
             OperationAxisRow(
                 id: axis,
                 title: axis.title,
@@ -23,7 +23,7 @@ extension GraphEditorStore {
     func setOperationAxis(_ axis: OperationAxis) {
         guard
             let selectedGroup = editingGroup,
-            ShapeGroupEditing.supportedOperationAxes(for: selectedGroup).contains(axis)
+            ShapeGroupOperation.supportedOperationAxes(for: selectedGroup).contains(axis)
         else {
             return
         }
@@ -38,7 +38,7 @@ extension GraphEditorStore {
                 return "なし"
             }
 
-            let value = Int(ShapeGroupEditing.value(for: property, in: selectedGroup))
+            let value = Int(ShapeGroupOperation.value(for: property, in: selectedGroup))
             return axis == .rotation ? "\(value)°" : "\(value)"
         }
     }
