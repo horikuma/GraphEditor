@@ -17,12 +17,17 @@ extension ContentView {
     private func drawCircle(_ circle: CirclePrimitive, in context: inout GraphicsContext) {
         let path = Path(ellipseIn: circle.rect)
         let color = circle.color
+        var rotatedContext = context
+        let center = CGPoint(x: circle.rect.midX, y: circle.rect.midY)
 
-        context.fill(path, with: .color(color.opacity(0.18)))
+        rotatedContext.translateBy(x: center.x, y: center.y)
+        rotatedContext.rotate(by: .degrees(circle.rotationDegrees))
+        rotatedContext.translateBy(x: -center.x, y: -center.y)
+        rotatedContext.fill(path, with: .color(color.opacity(0.18)))
 
         if circle.isSelected {
             let selectionRect = circle.rect.insetBy(dx: -5, dy: -5)
-            context.stroke(
+            rotatedContext.stroke(
                 Path(selectionRect),
                 with: .color(Color.primary.opacity(0.45)),
                 style: StrokeStyle(lineWidth: 1, dash: [5, 4])

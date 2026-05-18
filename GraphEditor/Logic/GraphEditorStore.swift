@@ -35,6 +35,8 @@ final class GraphEditorStore {
     private var rootGroup: ShapeGroup
     private var selectedNodeIDs: Set<UUID>
     private var nextGroupNumber = 1
+    private var nextCircleNumber = 1
+    private var nextRectangleNumber = 1
     var operationAxis = OperationAxis.xCoordinate
 
     init() {
@@ -88,6 +90,8 @@ final class GraphEditorStore {
         rootGroup = initialState.rootGroup
         selectedNodeIDs = [initialState.initialSelectionID]
         nextGroupNumber = 1
+        nextCircleNumber = 1
+        nextRectangleNumber = 1
         normalizeOperationAxis()
     }
 
@@ -97,13 +101,14 @@ final class GraphEditorStore {
             makeDrawingShape(
                 kind: addableShapeKind,
                 location: clampedLocation,
+                title: nextShapeTitle(for: addableShapeKind),
                 color: strokeColor
             )
         )
     }
 
     func selectShape(at location: LogicPoint) {
-        guard let selectedID = rootGroup.hitSelectableID(at: location) else {
+        guard let selectedID = rootGroup.hitSelectableID(at: location, selectedIDs: selectedNodeIDs) else {
             selectedNodeIDs.removeAll()
             normalizeOperationAxis()
             return
@@ -129,8 +134,7 @@ final class GraphEditorStore {
     }
 
     func setTreeSelection(ids: Set<UUID>) {
-        let selectableIDs = Set(rootGroup.children.map(\.id))
-        selectedNodeIDs = ids.intersection(selectableIDs)
+        selectedNodeIDs = ids.intersection(rootGroup.selectableIDs)
         normalizeOperationAxis()
     }
 
@@ -193,6 +197,19 @@ final class GraphEditorStore {
         normalizeOperationAxis()
     }
 
+    private func nextShapeTitle(for kind: AddableShapeKind) -> String {
+        switch kind {
+        case .circle:
+            let title = String(format: "円%02d", nextCircleNumber)
+            nextCircleNumber += 1
+            return title
+        case .rectangle:
+            let title = String(format: "矩形%02d", nextRectangleNumber)
+            nextRectangleNumber += 1
+            return title
+        }
+    }
+
     private func applyLinearOperation(delta: Double) {
         guard !rootGroup.children.isEmpty else {
             selectedNodeIDs.removeAll()
@@ -217,7 +234,7 @@ final class GraphEditorStore {
     }
 
     private func ensureSelection() {
-        if selectedNodeIDs.isEmpty || selectedRootChildIndices.isEmpty {
+        if selectedNodeIDs.isEmpty || rootGroup.selectedElements(ids: selectedNodeIDs).isEmpty {
             selectedNodeIDs = rootGroup.children.first.map { [$0.id] } ?? []
         }
 
@@ -266,7 +283,7 @@ final class GraphEditorStore {
     }
 
     private var selectedShapeIDs: Set<DrawingShape.ID> {
-        Set(selectedRootChildIndices.flatMap { rootGroup.children[$0].shapeIDs })
+        Set(rootGroup.selectedElements(ids: selectedNodeIDs).flatMap(\.shapeIDs))
     }
 
     private var selectedGroupCentroid: LogicPoint? {
@@ -278,7 +295,7 @@ final class GraphEditorStore {
     }
 
     var editingGroup: ShapeGroup? {
-        let selectedElements = selectedRootChildIndices.map { rootGroup.children[$0] }
+        let selectedElements = rootGroup.selectedElements(ids: selectedNodeIDs)
         guard !selectedElements.isEmpty else {
             return nil
         }
@@ -290,7 +307,10 @@ final class GraphEditorStore {
         return ShapeGroup(title: "選択", children: selectedElements)
     }
 
-    private func rows(for group: ShapeGroup, depth: Int) -> [GroupTreeRow] {
+}
+
+private extension GraphEditorStore {
+    func rows(for group: ShapeGroup, depth: Int) -> [GroupTreeRow] {
         let row = GroupTreeRow(
             id: group.id,
             depth: depth,
@@ -298,13 +318,13 @@ final class GraphEditorStore {
             detail: "\(group.shapeCount) objects",
             isGroup: true,
             isSelected: selectedNodeIDs.contains(group.id),
-            isSelectable: depth == 1
+            isSelectable: depth > 0
         )
 
         return [row] + group.children.flatMap { rows(for: $0, depth: depth + 1) }
     }
 
-    private func rows(for element: ShapeGroupElement, depth: Int) -> [GroupTreeRow] {
+    func rows(for element: ShapeGroupElement, depth: Int) -> [GroupTreeRow] {
         switch element {
         case let .group(group):
             return rows(for: group, depth: depth)
@@ -317,12 +337,11 @@ final class GraphEditorStore {
                     detail: "primitive",
                     isGroup: false,
                     isSelected: selectedNodeIDs.contains(shape.id),
-                    isSelectable: depth == 1
+                    isSelectable: depth > 0
                 )
             ]
         }
     }
-
 }
 
 private func clamp(_ point: LogicPoint, in size: LogicSize) -> LogicPoint {
@@ -335,20 +354,23 @@ private func clamp(_ point: LogicPoint, in size: LogicSize) -> LogicPoint {
 private func makeDrawingShape(
     kind: AddableShapeKind,
     location: LogicPoint,
+    title: String,
     color: LogicColor
 ) -> DrawingShape {
     switch kind {
     case .circle:
         return .circle(
             DrawnCircle(
+                title: title,
                 center: location,
-                diameter: 48,
+                size: LogicSize(width: 48, height: 48),
                 color: color
             )
         )
     case .rectangle:
         return .rectangle(
             DrawnRectangle(
+                title: title,
                 center: location,
                 size: LogicSize(width: 72, height: 48),
                 color: color

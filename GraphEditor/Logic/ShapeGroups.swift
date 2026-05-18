@@ -159,6 +159,15 @@ struct ShapeGroup: Identifiable {
 }
 
 extension ShapeGroupElement {
+    var selectableIDs: Set<UUID> {
+        switch self {
+        case let .group(group):
+            return Set([group.id]).union(group.children.flatMap(\.selectableIDs))
+        case let .shape(shape):
+            return [shape.id]
+        }
+    }
+
     var flattenedShapes: [DrawingShape] {
         switch self {
         case let .group(group):
@@ -182,6 +191,45 @@ extension ShapeGroupElement {
             return group.group(id: id)
         case .shape:
             return nil
+        }
+    }
+}
+
+extension ShapeGroup {
+    var selectableIDs: Set<UUID> {
+        Set(children.flatMap(\.selectableIDs))
+    }
+
+    func selectedElements(ids: Set<UUID>) -> [ShapeGroupElement] {
+        children.flatMap { child -> [ShapeGroupElement] in
+            if ids.contains(child.id) {
+                return [child]
+            }
+
+            guard case let .group(group) = child else {
+                return []
+            }
+
+            return group.selectedElements(ids: ids)
+        }
+    }
+
+    mutating func updateSelectedElements(
+        ids: Set<UUID>,
+        transform: (inout ShapeGroupElement) -> Void
+    ) {
+        for index in children.indices {
+            if ids.contains(children[index].id) {
+                transform(&children[index])
+                continue
+            }
+
+            guard case var .group(group) = children[index] else {
+                continue
+            }
+
+            group.updateSelectedElements(ids: ids, transform: transform)
+            children[index] = .group(group)
         }
     }
 }

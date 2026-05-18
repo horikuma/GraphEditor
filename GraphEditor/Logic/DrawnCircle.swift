@@ -2,8 +2,9 @@ import Foundation
 
 struct DrawnCircle: Identifiable, EditableShape, RotatableShape {
     let id = UUID()
+    let title: String
     var center: LogicPoint
-    var diameter: Double
+    var size: LogicSize
     var rotationDegrees = 0.0
     let color: LogicColor
 
@@ -13,16 +14,15 @@ struct DrawnCircle: Identifiable, EditableShape, RotatableShape {
 
     var bounds: LogicRect? {
         LogicRect(
-            minX: center.xCoordinate - diameter / 2,
-            minY: center.yCoordinate - diameter / 2,
-            maxX: center.xCoordinate + diameter / 2,
-            maxY: center.yCoordinate + diameter / 2
+            minX: center.xCoordinate - size.width / 2,
+            minY: center.yCoordinate - size.height / 2,
+            maxX: center.xCoordinate + size.width / 2,
+            maxY: center.yCoordinate + size.height / 2
         )
     }
 
     var rotationArea: Double {
-        let radius = diameter / 2
-        return .pi * radius * radius
+        .pi * size.width * size.height / 4
     }
 
     var supportedOperationAxes: [OperationAxis] {
@@ -36,9 +36,9 @@ struct DrawnCircle: Identifiable, EditableShape, RotatableShape {
         case .yCoordinate:
             return center.yCoordinate
         case .width:
-            return diameter
+            return size.width
         case .height:
-            return diameter
+            return size.height
         case .rotation:
             return rotationDegrees
         case .spacing, .xOffset, .yOffset:
@@ -52,8 +52,10 @@ struct DrawnCircle: Identifiable, EditableShape, RotatableShape {
             center.xCoordinate += delta
         case .yCoordinate:
             center.yCoordinate -= delta
-        case .width, .height:
-            diameter = max(4, diameter + delta)
+        case .width:
+            size.width = max(4, size.width + delta)
+        case .height:
+            size.height = max(4, size.height + delta)
         case .rotation:
             rotationDegrees += delta
         case .spacing, .xOffset, .yOffset:

@@ -18,12 +18,12 @@ enum DrawingShape: Identifiable {
 
     var title: String {
         switch self {
-        case .circle:
-            return "円"
-        case .rectangle:
-            return "矩形"
-        case .grid:
-            return "グリッド"
+        case let .circle(circle):
+            return circle.title
+        case let .rectangle(rectangle):
+            return rectangle.title
+        case let .grid(grid):
+            return grid.title
         }
     }
 

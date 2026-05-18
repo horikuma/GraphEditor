@@ -47,16 +47,16 @@ enum ShapeGroupEditing {
         by delta: Double,
         in rootGroup: inout ShapeGroup
     ) {
-        for index in rootGroup.children.indices where ids.contains(rootGroup.children[index].id) {
-            move(property: property, by: delta, in: &rootGroup.children[index])
+        rootGroup.updateSelectedElements(ids: ids) { element in
+            move(property: property, by: delta, in: &element)
         }
     }
 
     static func rotateNodes(ids: Set<UUID>, degrees: Double, in rootGroup: inout ShapeGroup) {
-        let selectedElements = rootGroup.children.filter { ids.contains($0.id) }
+        let selectedElements = rootGroup.selectedElements(ids: ids)
         let pivot = ShapeGroup(title: "選択", children: selectedElements).rotationCentroid
-        for index in rootGroup.children.indices where ids.contains(rootGroup.children[index].id) {
-            rotateBy(degrees: degrees, around: pivot, in: &rootGroup.children[index])
+        rootGroup.updateSelectedElements(ids: ids) { element in
+            rotateBy(degrees: degrees, around: pivot, in: &element)
         }
     }
 

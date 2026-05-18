@@ -171,7 +171,8 @@ final class GraphEditorBridge: ObservableObject {
             return .circle(
                 CirclePrimitive(
                     id: circle.id,
-                    rect: Self.rect(center: circle.center, diameter: circle.diameter),
+                    rect: Self.rect(center: circle.center, size: circle.size),
+                    rotationDegrees: circle.rotationDegrees,
                     color: Self.color(from: circle.color),
                     isSelected: isSelected
                 )
@@ -235,15 +236,6 @@ final class GraphEditorBridge: ObservableObject {
 
     private static func point(from point: LogicPoint) -> CGPoint {
         CGPoint(x: point.xCoordinate, y: point.yCoordinate)
-    }
-
-    private static func rect(center: LogicPoint, diameter: Double) -> CGRect {
-        CGRect(
-            x: center.xCoordinate - diameter / 2,
-            y: center.yCoordinate - diameter / 2,
-            width: diameter,
-            height: diameter
-        )
     }
 
     private static func rect(center: LogicPoint, size: LogicSize) -> CGRect {

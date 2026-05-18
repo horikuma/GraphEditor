@@ -2,6 +2,7 @@ import Foundation
 
 struct DrawnGrid: Identifiable, EditableShape {
     let id = UUID()
+    let title = "グリッド"
     var origin: LogicPoint
     var spacing: Double
 

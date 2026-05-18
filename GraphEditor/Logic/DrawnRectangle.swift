@@ -2,6 +2,7 @@ import Foundation
 
 struct DrawnRectangle: Identifiable, EditableShape, RotatableShape {
     let id = UUID()
+    let title: String
     var center: LogicPoint
     var size: LogicSize
     var rotationDegrees = 0.0
