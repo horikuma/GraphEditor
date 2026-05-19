@@ -77,6 +77,15 @@ final class GraphEditorBridge: ObservableObject {
         objectWillChange.send()
     }
 
+    func canDragSelection(at location: CGPoint) -> Bool {
+        store.canDragSelection(at: Self.logicPoint(from: location))
+    }
+
+    func translateSelectionBy(_ delta: CGSize) {
+        store.translateSelectionBy(xDelta: Double(delta.width), yDelta: Double(delta.height))
+        objectWillChange.send()
+    }
+
     func selectOperationAxis(_ axis: OperationAxis) {
         store.setOperationAxis(axis)
         objectWillChange.send()

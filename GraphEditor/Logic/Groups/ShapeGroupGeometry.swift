@@ -34,7 +34,7 @@ enum ShapeGroupGeometry {
         }
     }
 
-    private static func translateBy(xDelta: Double, yDelta: Double, in element: inout ShapeGroupElement) {
+    static func translateBy(xDelta: Double, yDelta: Double, in element: inout ShapeGroupElement) {
         switch element {
         case var .group(group):
             translateBy(xDelta: xDelta, yDelta: yDelta, in: &group)

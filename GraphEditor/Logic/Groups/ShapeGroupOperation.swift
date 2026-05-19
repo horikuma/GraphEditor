@@ -40,6 +40,17 @@ enum ShapeGroupOperation {
         }
     }
 
+    static func translateNodes(
+        ids: Set<UUID>,
+        xDelta: Double,
+        yDelta: Double,
+        in rootGroup: inout ShapeGroup
+    ) {
+        ShapeGroupTraversal.updateSelectedElements(ids: ids, in: &rootGroup) { element in
+            ShapeGroupGeometry.translateBy(xDelta: xDelta, yDelta: yDelta, in: &element)
+        }
+    }
+
     static func rotateNodes(ids: Set<UUID>, degrees: Double, in rootGroup: inout ShapeGroup) {
         let selectedElements = ShapeGroupTraversal.selectedElements(in: rootGroup, ids: ids)
         let pivot = ShapeGroupGeometry.rotationCentroid(

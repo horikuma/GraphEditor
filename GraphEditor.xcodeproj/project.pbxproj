@@ -12,7 +12,7 @@
 		00A0000A0000000000000003 /* GraphEditorStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000004 /* GraphEditorStore.swift */; };
 		00A0000A0000000000000004 /* ShapeEditing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000005 /* ShapeEditing.swift */; };
 		00A0000A0000000000000005 /* DrawingShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000006 /* DrawingShape.swift */; };
-		00A0000A0000000000000006 /* KeyEventHandlingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000007 /* KeyEventHandlingView.swift */; };
+		00A0000A0000000000000006 /* GraphInputHandlingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000007 /* GraphInputHandlingView.swift */; };
 		00A0000A0000000000000007 /* GraphEditorBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000008 /* GraphEditorBridge.swift */; };
 		00A0000A0000000000000008 /* ShapeGroups.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B0000000000000009 /* ShapeGroups.swift */; };
 		00A0000A0000000000000009 /* ShapeGroupOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A0000B000000000000000A /* ShapeGroupOperation.swift */; };
@@ -45,7 +45,7 @@
 		00A0000B0000000000000004 /* GraphEditorStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/Store/GraphEditorStore.swift; sourceTree = "<group>"; };
 		00A0000B0000000000000005 /* ShapeEditing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/Shapes/ShapeEditing.swift; sourceTree = "<group>"; };
 		00A0000B0000000000000006 /* DrawingShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/Shapes/DrawingShape.swift; sourceTree = "<group>"; };
-		00A0000B0000000000000007 /* KeyEventHandlingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/Input/KeyEventHandlingView.swift; sourceTree = "<group>"; };
+		00A0000B0000000000000007 /* GraphInputHandlingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/Input/GraphInputHandlingView.swift; sourceTree = "<group>"; };
 		00A0000B0000000000000008 /* GraphEditorBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bridge/GraphEditorBridge.swift; sourceTree = "<group>"; };
 		00A0000B0000000000000009 /* ShapeGroups.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/Groups/ShapeGroups.swift; sourceTree = "<group>"; };
 		00A0000B000000000000000A /* ShapeGroupOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/Groups/ShapeGroupOperation.swift; sourceTree = "<group>"; };
@@ -194,7 +194,7 @@
 		00A0000E000000000000000C /* Input */ = {
 			isa = PBXGroup;
 			children = (
-				00A0000B0000000000000007 /* KeyEventHandlingView.swift */,
+				00A0000B0000000000000007 /* GraphInputHandlingView.swift */,
 				00A0000B000000000000000C /* TreeReturnKeyHandlingView.swift */,
 			);
 			name = Input;
@@ -300,7 +300,7 @@
 				00A0000A0000000000000019 /* OperationAxisRow.swift in Sources */,
 				00A0000A0000000000000017 /* DrawingPrimitive.swift in Sources */,
 				00A0000A0000000000000007 /* GraphEditorBridge.swift in Sources */,
-				00A0000A0000000000000006 /* KeyEventHandlingView.swift in Sources */,
+				00A0000A0000000000000006 /* GraphInputHandlingView.swift in Sources */,
 				00A0000A0000000000000002 /* ContentView.swift in Sources */,
 				00A0000A000000000000000B /* ContentView+Drawing.swift in Sources */,
 				00A0000A000000000000001B /* ContentView+InspectorPanel.swift in Sources */,

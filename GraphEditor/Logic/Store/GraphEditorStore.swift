@@ -118,6 +118,19 @@ final class GraphEditorStore {
         normalizeOperationAxis()
     }
 
+    func canDragSelection(at location: LogicPoint) -> Bool {
+        guard let hitID = rootGroup.hitSelectableID(at: location, selectedIDs: selectedNodeIDs) else {
+            return false
+        }
+        let ids = ShapeGroupTraversal.selectedElements(in: rootGroup, ids: selectedNodeIDs)
+            .flatMap(ShapeGroupTraversal.selectableIDs)
+        return ids.contains(hitID)
+    }
+
+    func translateSelectionBy(xDelta: Double, yDelta: Double) {
+        ShapeGroupOperation.translateNodes(ids: selectedNodeIDs, xDelta: xDelta, yDelta: yDelta, in: &rootGroup)
+    }
+
     func handleKeyCommand(_ command: LogicKeyCommand, modifiers: LogicKeyModifiers) -> Bool {
         switch command {
         case .left:
@@ -379,13 +392,6 @@ private func makeDrawingShape(
 
 private func makeInitialShapeTree() -> InitialShapeTree {
     let grid = DrawingShape.grid(DrawnGrid(origin: .zero, spacing: 24))
-    let rootGroup = ShapeGroup(
-        title: "ルート",
-        children: [.shape(grid)]
-    )
-
-    return InitialShapeTree(
-        rootGroup: rootGroup,
-        initialSelectionID: grid.id
-    )
+    let rootGroup = ShapeGroup(title: "ルート", children: [.shape(grid)])
+    return InitialShapeTree(rootGroup: rootGroup, initialSelectionID: grid.id)
 }

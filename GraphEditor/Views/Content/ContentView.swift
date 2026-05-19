@@ -5,11 +5,17 @@ struct ContentView: View {
     @StateObject var bridge = GraphEditorBridge()
     @State var graphFocusRequest = 0
     @State var graphZoomScale = 1.0
-    @State var graphGestureZoomScale = 1.0
+    @State var graphOffset = CGSize.zero
+    @State var graphCursorLocation = CGPoint.zero
+    @State var graphZoomGestureStartScale: Double?
+    @State var graphZoomGestureStartOffset: CGSize?
+    @State var graphZoomGestureAnchorLocation: CGPoint?
+    @State var graphZoomGestureAnchorGraphLocation: CGPoint?
+    @State var selectionDragLastGraphLocation: CGPoint?
     @State var focusedPane = FocusedPane.graph
 
     private var currentGraphZoomScale: Double {
-        clampZoomScale(graphZoomScale * graphGestureZoomScale)
+        graphZoomScale
     }
 
     var body: some View {
@@ -62,17 +68,19 @@ struct ContentView: View {
                 context.fill(background, with: .color(Color(nsColor: .textBackgroundColor)))
 
                 let zoomScale = currentGraphZoomScale
-                let scaledSize = CGSize(width: size.width / zoomScale, height: size.height / zoomScale)
+                let scaledSize = scaledGraphSize(size)
 
+                context.translateBy(x: graphOffset.width, y: graphOffset.height)
                 context.scaleBy(x: zoomScale, y: zoomScale)
                 for primitive in bridge.drawingPrimitives(in: scaledSize) {
                     draw(primitive, in: &context, size: scaledSize)
                 }
             }
             .background(
-                KeyEventHandlingView(
+                GraphInputHandlingView(
                     focusRequest: graphFocusRequest,
-                    onKeyDown: bridge.handleKeyDown
+                    onKeyDown: bridge.handleKeyDown,
+                    onScroll: panGraph
                 )
             )
             .overlay(alignment: .bottomLeading) {
@@ -94,6 +102,11 @@ struct ContentView: View {
                 focusRing(isFocused: focusedPane == .graph)
             }
             .contentShape(Rectangle())
+            .onContinuousHover(coordinateSpace: .local) { phase in
+                if case let .active(location) = phase {
+                    graphCursorLocation = location
+                }
+            }
             .gesture(
                 SpatialTapGesture(count: 2, coordinateSpace: .local)
                     .onEnded { value in
@@ -113,26 +126,105 @@ struct ContentView: View {
                     }
             )
             .simultaneousGesture(
+                DragGesture(minimumDistance: 2, coordinateSpace: .local)
+                    .onChanged { value in
+                        updateSelectionDrag(value: value)
+                    }
+                    .onEnded { _ in
+                        resetSelectionDrag()
+                    }
+            )
+            .simultaneousGesture(
                 MagnificationGesture()
                     .onChanged { value in
-                        graphGestureZoomScale = value
+                        updateGraphZoom(magnification: value, viewportSize: geometry.size)
                     }
                     .onEnded { value in
-                        graphZoomScale = clampZoomScale(graphZoomScale * value)
-                        graphGestureZoomScale = 1
+                        updateGraphZoom(magnification: value, viewportSize: geometry.size)
+                        resetGraphZoomGesture()
                     }
             )
         }
     }
 
     private func scaledGraphLocation(_ location: CGPoint) -> CGPoint {
-        let zoomScale = currentGraphZoomScale
-        return CGPoint(x: location.x / zoomScale, y: location.y / zoomScale)
+        graphLocation(at: location, zoomScale: currentGraphZoomScale, offset: graphOffset)
     }
 
     private func scaledGraphSize(_ size: CGSize) -> CGSize {
-        let zoomScale = currentGraphZoomScale
-        return CGSize(width: size.width / zoomScale, height: size.height / zoomScale)
+        let bottomRight = scaledGraphLocation(CGPoint(x: size.width, y: size.height))
+        return CGSize(width: max(0, bottomRight.x), height: max(0, bottomRight.y))
+    }
+
+    private func updateGraphZoom(magnification: Double, viewportSize: CGSize) {
+        let startScale = graphZoomGestureStartScale ?? graphZoomScale
+        let startOffset = graphZoomGestureStartOffset ?? graphOffset
+        let anchorLocation = graphZoomGestureAnchorLocation ?? clampedGraphCursorLocation(in: viewportSize)
+        let anchorGraphLocation = graphZoomGestureAnchorGraphLocation
+            ?? graphLocation(at: anchorLocation, zoomScale: startScale, offset: startOffset)
+        let nextScale = clampZoomScale(startScale * magnification)
+
+        graphZoomGestureStartScale = startScale
+        graphZoomGestureStartOffset = startOffset
+        graphZoomGestureAnchorLocation = anchorLocation
+        graphZoomGestureAnchorGraphLocation = anchorGraphLocation
+        graphZoomScale = nextScale
+        graphOffset = CGSize(
+            width: anchorLocation.x - anchorGraphLocation.x * nextScale,
+            height: anchorLocation.y - anchorGraphLocation.y * nextScale
+        )
+    }
+
+    private func resetGraphZoomGesture() {
+        graphZoomGestureStartScale = nil
+        graphZoomGestureStartOffset = nil
+        graphZoomGestureAnchorLocation = nil
+        graphZoomGestureAnchorGraphLocation = nil
+    }
+
+    private func updateSelectionDrag(value: DragGesture.Value) {
+        focusedPane = .graph
+        graphFocusRequest += 1
+
+        let graphLocation = scaledGraphLocation(value.location)
+        guard let lastGraphLocation = selectionDragLastGraphLocation else {
+            if bridge.canDragSelection(at: scaledGraphLocation(value.startLocation)) {
+                selectionDragLastGraphLocation = graphLocation
+            }
+            return
+        }
+
+        bridge.translateSelectionBy(
+            CGSize(
+                width: graphLocation.x - lastGraphLocation.x,
+                height: graphLocation.y - lastGraphLocation.y
+            )
+        )
+        selectionDragLastGraphLocation = graphLocation
+    }
+
+    private func resetSelectionDrag() {
+        selectionDragLastGraphLocation = nil
+    }
+
+    private func panGraph(by delta: CGSize) {
+        graphOffset.width += delta.width
+        graphOffset.height += delta.height
+        resetGraphZoomGesture()
+    }
+
+    private func clampedGraphCursorLocation(in viewportSize: CGSize) -> CGPoint {
+        CGPoint(
+            x: min(max(graphCursorLocation.x, 0), viewportSize.width),
+            y: min(max(graphCursorLocation.y, 0), viewportSize.height)
+        )
+    }
+
+    private func graphLocation(at location: CGPoint, zoomScale: Double, offset: CGSize) -> CGPoint {
+        CGPoint(
+            x: (location.x - offset.width) / zoomScale,
+            y: (location.y - offset.height) / zoomScale
+        )
     }
 
 }
@@ -145,7 +237,7 @@ enum FocusedPane {
 
 func focusRing(isFocused: Bool) -> some View {
     RoundedRectangle(cornerRadius: 0)
-        .stroke(
+        .strokeBorder(
             isFocused ? Color.accentColor.opacity(0.7) : Color.secondary.opacity(0.18),
             lineWidth: isFocused ? 2 : 1
         )
