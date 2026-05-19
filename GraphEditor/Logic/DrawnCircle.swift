@@ -29,8 +29,8 @@ struct DrawnCircle: Identifiable, EditableShape, RotatableShape {
         [.xCoordinate, .yCoordinate, .width, .height, .rotation]
     }
 
-    func value(for property: ShapeEditableProperty) -> Double {
-        switch property {
+    func value(for axis: OperationAxis) -> Double {
+        switch axis {
         case .xCoordinate:
             return center.xCoordinate
         case .yCoordinate:
@@ -46,8 +46,8 @@ struct DrawnCircle: Identifiable, EditableShape, RotatableShape {
         }
     }
 
-    mutating func move(property: ShapeEditableProperty, by delta: Double) {
-        switch property {
+    mutating func move(axis: OperationAxis, by delta: Double) {
+        switch axis {
         case .xCoordinate:
             center.xCoordinate += delta
         case .yCoordinate:

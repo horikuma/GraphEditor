@@ -35,45 +35,14 @@ enum OperationAxis: String, CaseIterable, Identifiable {
         }
     }
 
-    var editableProperty: ShapeEditableProperty? {
-        switch self {
-        case .xCoordinate:
-            return .xCoordinate
-        case .yCoordinate:
-            return .yCoordinate
-        case .width:
-            return .width
-        case .height:
-            return .height
-        case .spacing:
-            return .spacing
-        case .xOffset:
-            return .xOffset
-        case .yOffset:
-            return .yOffset
-        case .rotation:
-            return .rotation
-        }
-    }
-}
-
-enum ShapeEditableProperty {
-    case xCoordinate
-    case yCoordinate
-    case width
-    case height
-    case spacing
-    case xOffset
-    case yOffset
-    case rotation
 }
 
 protocol EditableShape {
     var centroid: LogicPoint { get }
     var supportedOperationAxes: [OperationAxis] { get }
 
-    func value(for property: ShapeEditableProperty) -> Double
-    mutating func move(property: ShapeEditableProperty, by delta: Double)
+    func value(for axis: OperationAxis) -> Double
+    mutating func move(axis: OperationAxis, by delta: Double)
 }
 
 protocol RotatableShape {

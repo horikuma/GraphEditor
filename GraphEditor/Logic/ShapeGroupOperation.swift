@@ -14,29 +14,29 @@ enum ShapeGroupOperation {
         return [.xCoordinate, .yCoordinate, .width, .height, .rotation]
     }
 
-    static func value(for property: ShapeEditableProperty, in group: ShapeGroup) -> Double {
-        switch property {
+    static func value(for axis: OperationAxis, in group: ShapeGroup) -> Double {
+        switch axis {
         case .xCoordinate:
             return group.centroid.xCoordinate
         case .yCoordinate:
             return group.centroid.yCoordinate
         case .width:
-            return group.bounds?.width ?? firstShapeValue(for: property, in: group)
+            return group.bounds?.width ?? firstShapeValue(for: axis, in: group)
         case .height:
-            return group.bounds?.height ?? firstShapeValue(for: property, in: group)
+            return group.bounds?.height ?? firstShapeValue(for: axis, in: group)
         case .spacing, .xOffset, .yOffset, .rotation:
-            return firstShapeValue(for: property, in: group)
+            return firstShapeValue(for: axis, in: group)
         }
     }
 
     static func moveNodes(
         ids: Set<UUID>,
-        property: ShapeEditableProperty,
+        axis: OperationAxis,
         by delta: Double,
         in rootGroup: inout ShapeGroup
     ) {
         ShapeGroupTraversal.updateSelectedElements(ids: ids, in: &rootGroup) { element in
-            move(property: property, by: delta, in: &element)
+            move(axis: axis, by: delta, in: &element)
         }
     }
 
@@ -50,16 +50,16 @@ enum ShapeGroupOperation {
         }
     }
 
-    private static func firstShapeValue(for property: ShapeEditableProperty, in group: ShapeGroup) -> Double {
+    private static func firstShapeValue(for axis: OperationAxis, in group: ShapeGroup) -> Double {
         group.flattenedShapes.first { shape in
             shape.supportedOperationAxes.contains {
-                $0.editableProperty == property
+                $0 == axis
             }
-        }?.value(for: property) ?? 0
+        }?.value(for: axis) ?? 0
     }
 
-    private static func move(property: ShapeEditableProperty, by delta: Double, in group: inout ShapeGroup) {
-        switch property {
+    private static func move(axis: OperationAxis, by delta: Double, in group: inout ShapeGroup) {
+        switch axis {
         case .xCoordinate:
             ShapeGroupGeometry.translateBy(xDelta: delta, yDelta: 0, in: &group)
         case .yCoordinate:
@@ -72,26 +72,26 @@ enum ShapeGroupOperation {
             )
         case .width, .height, .spacing, .xOffset, .yOffset:
             for index in group.children.indices {
-                move(property: property, by: delta, in: &group.children[index])
+                move(axis: axis, by: delta, in: &group.children[index])
             }
         }
     }
 
     private static func move(
-        property: ShapeEditableProperty,
+        axis: OperationAxis,
         by delta: Double,
         in element: inout ShapeGroupElement
     ) {
         switch element {
         case var .group(group):
-            move(property: property, by: delta, in: &group)
+            move(axis: axis, by: delta, in: &group)
             element = .group(group)
         case var .shape(shape):
-            guard shape.supportedOperationAxes.contains(where: { $0.editableProperty == property }) else {
+            guard shape.supportedOperationAxes.contains(axis) else {
                 return
             }
 
-            shape.move(property: property, by: delta)
+            shape.move(axis: axis, by: delta)
             element = .shape(shape)
         }
     }

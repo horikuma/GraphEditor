@@ -34,11 +34,7 @@ extension GraphEditorStore {
     func operationValueText(for axis: OperationAxis, in selectedGroup: ShapeGroup) -> String {
         switch axis {
         case .xCoordinate, .yCoordinate, .width, .height, .spacing, .xOffset, .yOffset, .rotation:
-            guard let property = axis.editableProperty else {
-                return "なし"
-            }
-
-            let value = Int(ShapeGroupOperation.value(for: property, in: selectedGroup))
+            let value = Int(ShapeGroupOperation.value(for: axis, in: selectedGroup))
             return axis == .rotation ? "\(value)°" : "\(value)"
         }
     }

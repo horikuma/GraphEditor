@@ -18,8 +18,8 @@ struct DrawnGrid: Identifiable, EditableShape {
         [.spacing, .xOffset, .yOffset]
     }
 
-    func value(for property: ShapeEditableProperty) -> Double {
-        switch property {
+    func value(for axis: OperationAxis) -> Double {
+        switch axis {
         case .spacing:
             return spacing
         case .xOffset:
@@ -31,8 +31,8 @@ struct DrawnGrid: Identifiable, EditableShape {
         }
     }
 
-    mutating func move(property: ShapeEditableProperty, by delta: Double) {
-        switch property {
+    mutating func move(axis: OperationAxis, by delta: Double) {
+        switch axis {
         case .spacing:
             spacing = max(4, spacing + delta)
         case .xOffset:

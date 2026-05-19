@@ -79,27 +79,27 @@ enum DrawingShape: Identifiable {
         }
     }
 
-    func value(for property: ShapeEditableProperty) -> Double {
+    func value(for axis: OperationAxis) -> Double {
         switch self {
         case let .circle(circle):
-            return circle.value(for: property)
+            return circle.value(for: axis)
         case let .rectangle(rectangle):
-            return rectangle.value(for: property)
+            return rectangle.value(for: axis)
         case let .grid(grid):
-            return grid.value(for: property)
+            return grid.value(for: axis)
         }
     }
 
-    mutating func move(property: ShapeEditableProperty, by delta: Double) {
+    mutating func move(axis: OperationAxis, by delta: Double) {
         switch self {
         case var .circle(circle):
-            circle.move(property: property, by: delta)
+            circle.move(axis: axis, by: delta)
             self = .circle(circle)
         case var .rectangle(rectangle):
-            rectangle.move(property: property, by: delta)
+            rectangle.move(axis: axis, by: delta)
             self = .rectangle(rectangle)
         case var .grid(grid):
-            grid.move(property: property, by: delta)
+            grid.move(axis: axis, by: delta)
             self = .grid(grid)
         }
     }

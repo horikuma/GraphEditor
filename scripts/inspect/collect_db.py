@@ -121,11 +121,14 @@ def write_collect_db(datasets: list[CollectDataset], collect_db_path: Path, sche
                 for row in dataset.call_edges:
                     _execute_insert(
                         cursor,
-                        "INSERT INTO call_edges(caller_usr, callee_usr, file_id, line, column, tu_id) "
-                        "VALUES (?, ?, ?, ?, ?, ?)",
+                        "INSERT INTO call_edges("
+                        "caller_usr, callee_usr, argument_summary, file_id, line, column, tu_id"
+                        ") "
+                        "VALUES (?, ?, ?, ?, ?, ?, ?)",
                         (
                             row.caller_usr,
                             row.callee_usr,
+                            row.argument_summary,
                             file_id,
                             row.line,
                             row.column,

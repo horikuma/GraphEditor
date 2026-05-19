@@ -218,18 +218,15 @@ final class GraphEditorStore {
 
         ensureSelection()
 
-        guard
-            let selectedGroup = editingGroup,
-            let property = operationAxis.editableProperty,
-            ShapeGroupOperation.supportedOperationAxes(for: selectedGroup).contains(operationAxis)
-        else {
+        guard let selectedGroup = editingGroup,
+              ShapeGroupOperation.supportedOperationAxes(for: selectedGroup).contains(operationAxis) else {
             return
         }
 
-        if property == .rotation {
+        if operationAxis == .rotation {
             ShapeGroupOperation.rotateNodes(ids: selectedNodeIDs, degrees: delta, in: &rootGroup)
         } else {
-            ShapeGroupOperation.moveNodes(ids: selectedNodeIDs, property: property, by: delta, in: &rootGroup)
+            ShapeGroupOperation.moveNodes(ids: selectedNodeIDs, axis: operationAxis, by: delta, in: &rootGroup)
         }
     }
 
