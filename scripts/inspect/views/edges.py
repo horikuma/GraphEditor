@@ -173,7 +173,7 @@ def _function_display_name(function: FunctionRecord, source_target: Path | None)
     except (FileNotFoundError, ValueError):
         relative_path = function.file_path
 
-    return f"{relative_path.name}:{function_name}"
+    return f"{relative_path}:{function_name}"
 
 
 def _sort_key(function: FunctionRecord, source_target: Path | None) -> tuple[str, str]:
