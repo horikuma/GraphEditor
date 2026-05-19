@@ -40,35 +40,35 @@
 
 /* Begin PBXFileReference section */
 		00A0000B0000000000000001 /* GraphEditorApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphEditorApp.swift; sourceTree = "<group>"; };
-		00A0000B0000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/ContentView.swift; sourceTree = "<group>"; };
+		00A0000B0000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/Content/ContentView.swift; sourceTree = "<group>"; };
 		00A0000B0000000000000003 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Resources/Info.plist; sourceTree = "<group>"; };
-		00A0000B0000000000000004 /* GraphEditorStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/GraphEditorStore.swift; sourceTree = "<group>"; };
-		00A0000B0000000000000005 /* ShapeEditing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/ShapeEditing.swift; sourceTree = "<group>"; };
-		00A0000B0000000000000006 /* DrawingShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/DrawingShape.swift; sourceTree = "<group>"; };
-		00A0000B0000000000000007 /* KeyEventHandlingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/KeyEventHandlingView.swift; sourceTree = "<group>"; };
+		00A0000B0000000000000004 /* GraphEditorStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/Store/GraphEditorStore.swift; sourceTree = "<group>"; };
+		00A0000B0000000000000005 /* ShapeEditing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/Shapes/ShapeEditing.swift; sourceTree = "<group>"; };
+		00A0000B0000000000000006 /* DrawingShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/Shapes/DrawingShape.swift; sourceTree = "<group>"; };
+		00A0000B0000000000000007 /* KeyEventHandlingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/Input/KeyEventHandlingView.swift; sourceTree = "<group>"; };
 		00A0000B0000000000000008 /* GraphEditorBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bridge/GraphEditorBridge.swift; sourceTree = "<group>"; };
-		00A0000B0000000000000009 /* ShapeGroups.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/ShapeGroups.swift; sourceTree = "<group>"; };
-		00A0000B000000000000000A /* ShapeGroupOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/ShapeGroupOperation.swift; sourceTree = "<group>"; };
-		00A0000B000000000000000B /* ContentView+Drawing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/ContentView+Drawing.swift"; sourceTree = "<group>"; };
-		00A0000B000000000000000C /* TreeReturnKeyHandlingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/TreeReturnKeyHandlingView.swift; sourceTree = "<group>"; };
-		00A0000B000000000000000D /* ShapeGroup+HitTesting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Logic/ShapeGroup+HitTesting.swift"; sourceTree = "<group>"; };
-		00A0000B000000000000000E /* LogicPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/LogicPoint.swift; sourceTree = "<group>"; };
-		00A0000B000000000000000F /* LogicSize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/LogicSize.swift; sourceTree = "<group>"; };
-		00A0000B0000000000000010 /* LogicRect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/LogicRect.swift; sourceTree = "<group>"; };
-		00A0000B0000000000000011 /* LogicColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/LogicColor.swift; sourceTree = "<group>"; };
-		00A0000B0000000000000012 /* AddableShapeKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/AddableShapeKind.swift; sourceTree = "<group>"; };
-		00A0000B0000000000000013 /* LogicKeyCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/LogicKeyCommand.swift; sourceTree = "<group>"; };
-		00A0000B0000000000000014 /* DrawnCircle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/DrawnCircle.swift; sourceTree = "<group>"; };
-		00A0000B0000000000000015 /* DrawnRectangle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/DrawnRectangle.swift; sourceTree = "<group>"; };
-		00A0000B0000000000000016 /* DrawnGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/DrawnGrid.swift; sourceTree = "<group>"; };
+		00A0000B0000000000000009 /* ShapeGroups.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/Groups/ShapeGroups.swift; sourceTree = "<group>"; };
+		00A0000B000000000000000A /* ShapeGroupOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/Groups/ShapeGroupOperation.swift; sourceTree = "<group>"; };
+		00A0000B000000000000000B /* ContentView+Drawing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/Content/ContentView+Drawing.swift"; sourceTree = "<group>"; };
+		00A0000B000000000000000C /* TreeReturnKeyHandlingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/Input/TreeReturnKeyHandlingView.swift; sourceTree = "<group>"; };
+		00A0000B000000000000000D /* ShapeGroup+HitTesting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Logic/Groups/ShapeGroup+HitTesting.swift"; sourceTree = "<group>"; };
+		00A0000B000000000000000E /* LogicPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/Geometry/LogicPoint.swift; sourceTree = "<group>"; };
+		00A0000B000000000000000F /* LogicSize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/Geometry/LogicSize.swift; sourceTree = "<group>"; };
+		00A0000B0000000000000010 /* LogicRect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/Geometry/LogicRect.swift; sourceTree = "<group>"; };
+		00A0000B0000000000000011 /* LogicColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/Shapes/LogicColor.swift; sourceTree = "<group>"; };
+		00A0000B0000000000000012 /* AddableShapeKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/Shapes/AddableShapeKind.swift; sourceTree = "<group>"; };
+		00A0000B0000000000000013 /* LogicKeyCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/Store/LogicKeyCommand.swift; sourceTree = "<group>"; };
+		00A0000B0000000000000014 /* DrawnCircle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/Shapes/DrawnCircle.swift; sourceTree = "<group>"; };
+		00A0000B0000000000000015 /* DrawnRectangle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/Shapes/DrawnRectangle.swift; sourceTree = "<group>"; };
+		00A0000B0000000000000016 /* DrawnGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/Shapes/DrawnGrid.swift; sourceTree = "<group>"; };
 		00A0000B0000000000000017 /* DrawingPrimitive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bridge/DrawingPrimitive.swift; sourceTree = "<group>"; };
-		00A0000B0000000000000018 /* LogicKeyModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/LogicKeyModifiers.swift; sourceTree = "<group>"; };
-		00A0000B0000000000000019 /* OperationAxisRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/OperationAxisRow.swift; sourceTree = "<group>"; };
-		00A0000B000000000000001A /* GraphEditorStore+OperationAxes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Logic/GraphEditorStore+OperationAxes.swift"; sourceTree = "<group>"; };
-		00A0000B000000000000001B /* ContentView+InspectorPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/ContentView+InspectorPanel.swift"; sourceTree = "<group>"; };
-		00A0000B000000000000001C /* LogicPoint+Rotation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Logic/LogicPoint+Rotation.swift"; sourceTree = "<group>"; };
-		00A0000B000000000000001D /* ShapeGroupGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/ShapeGroupGeometry.swift; sourceTree = "<group>"; };
-		00A0000B000000000000001E /* ShapeGroupTraversal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/ShapeGroupTraversal.swift; sourceTree = "<group>"; };
+		00A0000B0000000000000018 /* LogicKeyModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/Store/LogicKeyModifiers.swift; sourceTree = "<group>"; };
+		00A0000B0000000000000019 /* OperationAxisRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/Store/OperationAxisRow.swift; sourceTree = "<group>"; };
+		00A0000B000000000000001A /* GraphEditorStore+OperationAxes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Logic/Store/GraphEditorStore+OperationAxes.swift"; sourceTree = "<group>"; };
+		00A0000B000000000000001B /* ContentView+InspectorPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Views/Content/ContentView+InspectorPanel.swift"; sourceTree = "<group>"; };
+		00A0000B000000000000001C /* LogicPoint+Rotation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Logic/Geometry/LogicPoint+Rotation.swift"; sourceTree = "<group>"; };
+		00A0000B000000000000001D /* ShapeGroupGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/Groups/ShapeGroupGeometry.swift; sourceTree = "<group>"; };
+		00A0000B000000000000001E /* ShapeGroupTraversal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic/Groups/ShapeGroupTraversal.swift; sourceTree = "<group>"; };
 		00A0000C0000000000000001 /* GraphEditor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GraphEditor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -95,37 +95,109 @@
 			isa = PBXGroup;
 			children = (
 				00A0000B0000000000000001 /* GraphEditorApp.swift */,
-				00A0000B0000000000000004 /* GraphEditorStore.swift */,
-				00A0000B000000000000001A /* GraphEditorStore+OperationAxes.swift */,
+				00A0000E0000000000000004 /* Bridge */,
+				00A0000E0000000000000005 /* Logic */,
+				00A0000E0000000000000006 /* Views */,
+				00A0000B0000000000000003 /* Info.plist */,
+			);
+			path = GraphEditor;
+			sourceTree = "<group>";
+		};
+		00A0000E0000000000000004 /* Bridge */ = {
+			isa = PBXGroup;
+			children = (
+				00A0000B0000000000000017 /* DrawingPrimitive.swift */,
+				00A0000B0000000000000008 /* GraphEditorBridge.swift */,
+			);
+			name = Bridge;
+			sourceTree = "<group>";
+		};
+		00A0000E0000000000000005 /* Logic */ = {
+			isa = PBXGroup;
+			children = (
+				00A0000E0000000000000007 /* Geometry */,
+				00A0000E0000000000000008 /* Shapes */,
+				00A0000E0000000000000009 /* Groups */,
+				00A0000E000000000000000A /* Store */,
+			);
+			name = Logic;
+			sourceTree = "<group>";
+		};
+		00A0000E0000000000000006 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				00A0000E000000000000000B /* Content */,
+				00A0000E000000000000000C /* Input */,
+			);
+			name = Views;
+			sourceTree = "<group>";
+		};
+		00A0000E0000000000000007 /* Geometry */ = {
+			isa = PBXGroup;
+			children = (
 				00A0000B000000000000000E /* LogicPoint.swift */,
 				00A0000B000000000000001C /* LogicPoint+Rotation.swift */,
 				00A0000B000000000000000F /* LogicSize.swift */,
 				00A0000B0000000000000010 /* LogicRect.swift */,
+			);
+			name = Geometry;
+			sourceTree = "<group>";
+		};
+		00A0000E0000000000000008 /* Shapes */ = {
+			isa = PBXGroup;
+			children = (
 				00A0000B0000000000000011 /* LogicColor.swift */,
 				00A0000B0000000000000012 /* AddableShapeKind.swift */,
-				00A0000B0000000000000013 /* LogicKeyCommand.swift */,
-				00A0000B0000000000000018 /* LogicKeyModifiers.swift */,
 				00A0000B0000000000000014 /* DrawnCircle.swift */,
 				00A0000B0000000000000015 /* DrawnRectangle.swift */,
 				00A0000B0000000000000016 /* DrawnGrid.swift */,
 				00A0000B0000000000000006 /* DrawingShape.swift */,
+				00A0000B0000000000000005 /* ShapeEditing.swift */,
+			);
+			name = Shapes;
+			sourceTree = "<group>";
+		};
+		00A0000E0000000000000009 /* Groups */ = {
+			isa = PBXGroup;
+			children = (
 				00A0000B0000000000000009 /* ShapeGroups.swift */,
 				00A0000B000000000000000D /* ShapeGroup+HitTesting.swift */,
 				00A0000B000000000000000A /* ShapeGroupOperation.swift */,
 				00A0000B000000000000001D /* ShapeGroupGeometry.swift */,
 				00A0000B000000000000001E /* ShapeGroupTraversal.swift */,
-				00A0000B0000000000000005 /* ShapeEditing.swift */,
+			);
+			name = Groups;
+			sourceTree = "<group>";
+		};
+		00A0000E000000000000000A /* Store */ = {
+			isa = PBXGroup;
+			children = (
+				00A0000B0000000000000004 /* GraphEditorStore.swift */,
+				00A0000B000000000000001A /* GraphEditorStore+OperationAxes.swift */,
+				00A0000B0000000000000013 /* LogicKeyCommand.swift */,
+				00A0000B0000000000000018 /* LogicKeyModifiers.swift */,
 				00A0000B0000000000000019 /* OperationAxisRow.swift */,
-				00A0000B0000000000000017 /* DrawingPrimitive.swift */,
-				00A0000B0000000000000008 /* GraphEditorBridge.swift */,
+			);
+			name = Store;
+			sourceTree = "<group>";
+		};
+		00A0000E000000000000000B /* Content */ = {
+			isa = PBXGroup;
+			children = (
 				00A0000B0000000000000002 /* ContentView.swift */,
 				00A0000B000000000000000B /* ContentView+Drawing.swift */,
 				00A0000B000000000000001B /* ContentView+InspectorPanel.swift */,
+			);
+			name = Content;
+			sourceTree = "<group>";
+		};
+		00A0000E000000000000000C /* Input */ = {
+			isa = PBXGroup;
+			children = (
 				00A0000B0000000000000007 /* KeyEventHandlingView.swift */,
 				00A0000B000000000000000C /* TreeReturnKeyHandlingView.swift */,
-				00A0000B0000000000000003 /* Info.plist */,
 			);
-			path = GraphEditor;
+			name = Input;
 			sourceTree = "<group>";
 		};
 		00A0000E0000000000000003 /* Products */ = {
